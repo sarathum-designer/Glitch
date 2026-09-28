@@ -1,0 +1,58 @@
+{
+  "name": "glitch-desktop",
+  "version": "0.3.0",
+  "description": "Glitch — Real estate calling and project reporting",
+  "author": "Glitch",
+  "private": true,
+  "packageManager": "pnpm@10.15.1",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "dist": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3",
+    "playwright": "1.58.2"
+  },
+  "build": {
+    "appId": "com.glitchsales.desktop",
+    "productName": "Glitch",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "app/**/*",
+      "desktop/**/*",
+      "package.json",
+      "!app/*.ps1"
+    ],
+    "asar": true,
+    "win": {
+      "target": "nsis",
+      "icon": "app/icon.ico",
+      "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "Glitch-Setup-${version}.${ext}"
+    },
+    "extraResources": [
+      {
+        "from": "resources/cloudflared.exe",
+        "to": "cloudflared.exe"
+      },
+      {
+        "from": "resources/CLOUDFLARED-LICENSE.txt",
+        "to": "CLOUDFLARED-LICENSE.txt"
+      }
+    ],
+    "npmRebuild": false,
+    "electronDist": "node_modules/electron/dist"
+  }
+}
