@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glitch · Real estate sales workspace</title>
+<link rel="icon" href="icon.ico" sizes="any">
+<style>
+:root{
+  --bg:#f6f5f2; --panel:#ffffff; --ink:#1d1d1b; --muted:#6b6a66; --line:#e4e2dc;
+  --accent:#e2621b; --accent-ink:#fff; --agent:#f1efe9; --user:#fde9dc;
+  --hot:#c9302c; --warm:#d98a00; --cold:#3a78c2; --ok:#2e8b57; --wa:#1f8f4e; --wa-bg:#e7f7ec;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#151513; --panel:#1f1f1c; --ink:#eeede8; --muted:#9a9993; --line:#33332f;
+    --accent:#f07a36; --accent-ink:#1a1a18; --agent:#2a2a26; --user:#3a2819;
+    --hot:#ff6b66; --warm:#f2b233; --cold:#6aa6ec; --ok:#4fc184; --wa:#4fc184; --wa-bg:#17291e;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI","Nirmala UI",sans-serif}
+header{padding:12px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{border:none;background:none;padding:8px 12px;border-radius:8px;color:var(--muted);font-weight:600}
+nav button.on{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+a{color:var(--accent)}
+main,.view-wrap{padding:16px;max-width:1500px;margin:0 auto}
+.calls-grid{display:grid;grid-template-columns:300px 1fr 340px;gap:16px}
+.admin-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1100px){.calls-grid,.admin-grid{grid-template-columns:1fr}}
+.midcol{display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.panel h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.panel h3{font-size:14px;margin:20px 0 8px}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+input[type=range]{padding:0;accent-color:var(--accent)}
+label span{color:var(--ink);font-weight:600}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+input[type=checkbox]{width:auto}
+.row{display:flex;gap:8px;align-items:center}
+.between{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.err{color:var(--hot)}
+button{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button.danger{background:var(--hot);color:#fff;border-color:var(--hot);font-weight:600}
+button.danger-outline{color:var(--hot);border-color:var(--hot);margin-top:18px}
+button.small{padding:3px 8px;font-size:13px}
+.small-link{font-size:13px;white-space:nowrap}
+.call{display:flex;flex-direction:column;min-height:520px}
+.callbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-left:auto}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dot.speaking{background:var(--accent);animation:pulse 1s infinite}
+.dot.listening{background:var(--ok);animation:pulse 1s infinite}
+.dot.thinking{background:var(--warm);animation:pulse .6s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.ready{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;font-size:12px}
+.ready span{padding:2px 8px;border-radius:999px;background:var(--agent);color:var(--muted)}
+.ready span.ok{color:var(--ok)} .ready span.bad{background:var(--hot);color:#fff}
+.keypad{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-top:10px}
+.keypad button{padding:6px 0;font-weight:700;font-variant-numeric:tabular-nums}
+@media (max-width:600px){.keypad{grid-template-columns:repeat(6,1fr)}}
+.transcript{flex:1;overflow-y:auto;margin:14px 0;display:flex;flex-direction:column;gap:8px;max-height:56vh;min-height:280px}
+.msg{max-width:80%;padding:9px 12px;border-radius:12px;white-space:pre-wrap}
+.msg.agent{background:var(--agent);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.ivr{border-left:3px solid var(--accent);font-size:13px}
+.msg.ivr::before{content:"IVR";display:block;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--accent)}
+.msg.user{background:var(--user);align-self:flex-end;border-bottom-right-radius:4px}
+.msg.key{font-weight:700}
+.msg.sys{align-self:center;font-size:12px;color:var(--muted);background:none;text-align:center}
+.msg.interim{opacity:.55;font-style:italic}
+.empty{margin:auto;text-align:center;color:var(--muted);max-width:380px}
+.composer{display:flex;gap:8px}
+.composer input{flex:1}
+.score{font-size:44px;font-weight:700;line-height:1}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;text-transform:uppercase;color:#fff;background:var(--muted);white-space:nowrap}
+.badge.hot{background:var(--hot)} .badge.warm{background:var(--warm)} .badge.cold{background:var(--cold)}
+.bar{height:6px;background:var(--line);border-radius:3px;margin:10px 0 6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .4s}
+.bd{margin:12px 0 16px;display:flex;flex-direction:column;gap:7px}
+.bd-row{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:13px}
+.bd-row .lvl{grid-column:1;color:var(--muted);font-size:12px}
+.bd-row b{grid-row:1/3;grid-column:2;align-self:center;font-variant-numeric:tabular-nums}
+.mini{grid-column:1/3;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.mini i{display:block;height:100%;background:var(--ok)}
+dl{margin:0;display:grid;grid-template-columns:90px 1fr;gap:6px 10px;font-size:14px}
+dt{color:var(--muted)} dd{margin:0;word-break:break-word}
+.leads{margin-top:10px;display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto}
+.lead{display:flex;justify-content:space-between;gap:8px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px;cursor:pointer}
+.lead:hover{border-color:var(--accent)}
+.warn{background:var(--user);padding:8px 10px;border-radius:8px;font-size:12px;margin-top:10px}
+.cform{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.cform .full{grid-column:1/-1}
+@media (max-width:700px){.cform{grid-template-columns:1fr}}
+.subtabs{display:flex;gap:4px;margin-bottom:12px}
+.ctable,.grid{width:100%;border-collapse:collapse;font-size:13px}
+.ctable{margin-top:12px}
+.ctable th,.grid th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;padding:6px;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;background:var(--panel)}
+.ctable td,.grid td{padding:6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.ctable td:last-child{text-align:right;white-space:nowrap}
+.grid.edit td{padding:3px}
+.grid.edit input{padding:5px 6px;font-size:13px;min-width:70px}
+.grid select{padding:4px 6px;font-size:13px}
+.grid input{padding:4px 6px;font-size:13px}
+.ctable-wrap{max-height:220px;overflow:auto}
+.table-wrap{overflow:auto;max-height:70vh}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:600;background:var(--agent);color:var(--muted);white-space:nowrap}
+.pill.calling,.pill.ok{background:var(--ok);color:#fff} .pill.dnc,.pill.err{background:var(--hot);color:#fff}
+.pill.awaiting_confirmation{background:var(--warm);color:#fff}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
+.tab{border-radius:999px;padding:5px 12px;font-size:13px}
+.tab.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.fields .wide{grid-column:1/-1}
+@media (max-width:700px){.fields{grid-template-columns:1fr}}
+.checks{display:flex;flex-direction:column;gap:2px;min-width:110px}
+.checks label{margin:0;font-size:12px;color:var(--ink);white-space:nowrap}
+.switch{margin:0;font-size:12px;color:var(--ink);white-space:nowrap}
+.kb{margin-top:18px;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.kb summary{cursor:pointer;font-weight:600;font-size:14px}
+.kb pre{white-space:pre-wrap;font-size:12px;max-height:420px;overflow:auto;margin:10px 0 0}
+.msgtext{white-space:pre-wrap;font-size:13px;max-width:520px}
+.actions{white-space:nowrap}
+pre.out{white-space:pre-wrap;font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:320px;overflow:auto}
+#toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:10px;z-index:10;max-width:min(360px,calc(100vw - 32px))}
+.toast{background:var(--ink);color:var(--panel);padding:10px 14px;border-radius:10px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.2);animation:slide .25s ease-out}
+.toast.wa{background:var(--wa-bg);color:var(--ink);border:1px solid var(--wa);padding:0;overflow:hidden}
+.wa-head{background:var(--wa);color:#fff;padding:6px 12px;font-size:12px}
+.wa-body{padding:10px 12px;white-space:pre-wrap}
+.wa-file{margin:0 12px 8px;padding:6px 10px;border-radius:8px;background:var(--panel);font-size:12px}
+.wa-foot{padding:0 12px 8px;font-size:11px;color:var(--muted);text-align:right}
+@keyframes slide{from{transform:translateY(12px);opacity:0}}
+.filebanner{background:var(--hot);color:#fff;padding:10px 20px;font-size:14px}
+.filebanner a{color:#fff;font-weight:700}
+.filebanner code{background:rgba(255,255,255,.2);color:#fff}
+.test-row{border-top:1px solid var(--line);padding:8px 0;font-size:13px}
+.test-row ul{margin:4px 0 0;padding-left:18px;color:var(--muted)}
+.steps{margin:0;padding-left:20px;font-size:13px;line-height:1.6}
+.steps li{margin-bottom:8px}
+code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--agent);padding:1px 5px;border-radius:4px;word-break:break-all}
+</style>
+<link rel="stylesheet" href="estateflow.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="glitch-theme.css">
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js"}}</script>
+<script src="desktop-store.js"></script>
+</head>
+<body>
+<header>
+  <h1>📞 Lead Qualifier</h1>
+  <nav id="nav">
+    <button data-view="calls" class="on">Calls</button>
+    <button data-view="sheets">Assignment sheets<span id="navSheets"></span></button>
+    <button data-view="whatsapp">WhatsApp<span id="navWa"></span></button>
+    <button data-view="admin">Projects &amp; team</button>
+    <button data-view="integrations">Integrations</button>
+    <button data-view="tests">Tests</button>
+  </nav>
+</header>
+
+<!-- ======================= CALLS ======================= -->
+<div class="view" id="view-calls">
+<main class="calls-grid">
+  <!-- SETUP -->
+  <section class="panel">
+    <h2>Campaign setup</h2>
+    <label for="company">Company</label>
+    <input id="company">
+    <label for="campProject">Project for test calls</label>
+    <select id="campProject"></select>
+    <div class="hint">Prices, availability and loans come live from the Projects &amp; team tab. Contacts and inbound calls carry their own project.</div>
+    <label for="extraNotes">Extra notes for the agent (optional)</label>
+    <textarea id="extraNotes" rows="2" placeholder="e.g. Weekend site visits get a free lunch"></textarea>
+    <label for="agent">Agent name</label>
+    <input id="agent" value="Priya">
+    <div class="row">
+      <div style="flex:1"><label for="leadName">Test lead name</label><input id="leadName" placeholder="optional"></div>
+      <div style="flex:1"><label for="leadPhone">Test mobile</label><input id="leadPhone" placeholder="optional" inputmode="tel"></div>
+    </div>
+
+    <label for="lang">Call language</label>
+    <select id="lang"></select>
+    <div class="hint">The IVR asks the lead to pick a language. You can also change it mid-call, and in Groq/Claude mode the agent switches if the lead asks.</div>
+
+    <h2 style="margin-top:22px">Voice &amp; personality</h2>
+    <label for="tts">Voice engine</label>
+    <select id="tts">
+      <option value="sarvam">Sarvam Bulbul: natural Indian voices (recommended)</option>
+      <option value="browser">Browser voices (free, robotic)</option>
+    </select>
+    <div id="sarvamBox">
+      <label for="sarvamKey">Sarvam API key</label>
+      <input id="sarvamKey" type="password" placeholder="sarvam api-subscription-key">
+      <div class="row hint"><input type="checkbox" id="rememberSarvam"><label for="rememberSarvam" style="margin:0">Remember on this device</label></div>
+      <div class="row">
+        <div style="flex:1"><label for="sarvamModel">Sarvam model</label>
+          <select id="sarvamModel"><option value="bulbul:v3">Bulbul v3 (most natural)</option><option value="bulbul:v2">Bulbul v2</option></select></div>
+        <div style="flex:1"><label for="speaker">Speaker</label><select id="speaker"></select></div>
+      </div>
+      <label for="expr">Expressiveness <span id="exprVal"></span></label>
+      <input type="range" id="expr" min="0.2" max="1.2" step="0.05" value="0.7">
+      <div class="hint">One voice speaks all 11 supported languages with a native Indian accent. Assamese and Urdu fall back to browser voices.</div>
+    </div>
+    <div id="browserVoiceBox">
+      <label for="voice">Agent voice</label>
+      <select id="voice"></select>
+      <div class="hint" id="voiceHint"></div>
+    </div>
+    <button type="button" id="testVoice" style="margin-top:8px">▶ Test voice</button>
+    <div class="row">
+      <div style="flex:1"><label for="gender">Agent is</label>
+        <select id="gender"><option value="female">Female</option><option value="male">Male</option></select></div>
+      <div style="flex:1"><label for="style">Speaking style</label>
+        <select id="style">
+          <option value="casual">Casual, like a real person</option>
+          <option value="polite">Polite professional</option>
+          <option value="formal">Formal</option>
+        </select></div>
+    </div>
+    <label for="rate">Speed <span id="rateVal"></span></label>
+    <input type="range" id="rate" min="0.6" max="1.5" step="0.05" value="1.05">
+    <label for="pitch">Pitch (browser voices) <span id="pitchVal"></span></label>
+    <input type="range" id="pitch" min="0.5" max="1.5" step="0.05" value="1">
+    <label for="volume">Volume <span id="volumeVal"></span></label>
+    <input type="range" id="volume" min="0.1" max="1" step="0.05" value="1">
+    <div class="row" style="margin-top:8px">
+      <input type="checkbox" id="pauses" checked><label for="pauses" style="margin:0">Natural pauses between sentences</label>
+    </div>
+
+    <h2 style="margin-top:22px">Listening</h2>
+    <label for="stt">Speech recognition</label>
+    <select id="stt">
+      <option value="whisper">Groq Whisper (best for Marathi, Malayalam, Gujarati…)</option>
+      <option value="browser">Browser built-in (faster, fewer languages)</option>
+    </select>
+    <div class="hint">Whisper uses your Groq key. It records until the lead pauses, then transcribes.</div>
+    <label for="silence">Wait after lead stops talking <span id="silenceVal"></span></label>
+    <input type="range" id="silence" min="0.5" max="3" step="0.1" value="1">
+    <div class="hint">The agent lets the caller finish, waits this long, then answers. On real calls it's rounded to whole seconds.</div>
+
+    <h2 style="margin-top:22px">Brain</h2>
+    <label for="mode">Conversation engine</label>
+    <select id="mode">
+      <option value="groq">Groq · multilingual conversation</option>
+      <option value="ai">Claude · multilingual conversation</option>
+      <option value="script">Scripted demo (English/Hindi, no key needed)</option>
+    </select>
+    <div id="groqBox">
+      <label for="groqKey">Groq API key</label>
+      <input id="groqKey" type="password" placeholder="gsk_...">
+      <div class="row hint"><input type="checkbox" id="rememberGroq"><label for="rememberGroq" style="margin:0">Remember on this device</label></div>
+      <label for="groqModel">Groq model</label>
+      <div class="row">
+        <select id="groqModel"><option value="">Paste key to load models</option></select>
+        <button type="button" id="groqRefresh" title="Reload model list">↻</button>
+      </div>
+      <div class="hint" id="groqHint">Get a free key at console.groq.com/keys. The model list is loaded live from your Groq account.</div>
+    </div>
+    <div id="keyBox">
+      <label for="apiKey">Anthropic API key</label>
+      <input id="apiKey" type="password" placeholder="sk-ant-...">
+      <div class="row hint"><input type="checkbox" id="rememberKey"><label for="rememberKey" style="margin:0">Remember on this device</label></div>
+      <div class="hint">The key is sent only to api.anthropic.com, straight from your browser. That's fine for a local prototype. For production, move the call to a server.</div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <input type="checkbox" id="autoListen" checked><label for="autoListen" style="margin:0">Auto-listen after agent speaks</label>
+    </div>
+    <div id="srWarn" class="warn" hidden>This browser can't do speech recognition. Type the lead's replies instead, or open the page in Edge or Chrome.</div>
+  </section>
+
+  <div class="midcol">
+    <!-- CONTACTS / INBOUND -->
+    <section class="panel">
+      <div class="subtabs">
+        <button class="tab on" data-sub="out">📞 Outbound: contacts &amp; auto-dial</button>
+        <button class="tab" data-sub="in">📲 Inbound: project lines</button>
+      </div>
+      <div id="sub-out">
+        <form class="cform" id="contactForm" autocomplete="off">
+          <input id="cName" placeholder="Name">
+          <input id="cPhone" placeholder="Mobile, e.g. 98765 43210" inputmode="tel">
+          <select id="cProject" title="Project"></select>
+          <select id="cLang" title="Language"></select>
+          <div class="row full">
+            <input type="checkbox" id="cConsent"><label for="cConsent" style="margin:0">This person enquired or agreed to be called</label>
+          </div>
+          <div class="row full">
+            <button class="primary" id="addCall">📞 Add &amp; call now</button>
+            <button type="button" id="addQueue">+ Add to queue</button>
+          </div>
+        </form>
+        <div class="row" style="margin-top:12px;flex-wrap:wrap;gap:16px">
+          <div class="row"><input type="checkbox" id="autoDial"><label for="autoDial" style="margin:0">Auto-dial the queue, one after another</label></div>
+          <div class="row"><input type="checkbox" id="ivrOn" checked><label for="ivrOn" style="margin:0">Start calls with the IVR menu</label></div>
+        </div>
+        <div class="ctable-wrap">
+          <table class="ctable">
+            <thead><tr><th>Name</th><th>Mobile</th><th>Project</th><th>Lang</th><th>Status</th><th>Score</th><th></th></tr></thead>
+            <tbody id="contacts"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="sub-in" hidden>
+        <div class="hint" style="margin-top:0">Each project has its own enquiry number. When a customer calls it, the AI receptionist answers every question about that project from its live data, recognises returning customers, confirms WhatsApp and books visits. Try it: pick a line, enter the caller's mobile and receive the call.</div>
+        <div class="cform" style="margin-top:10px">
+          <select id="inLine" title="Project line" style="grid-column:span 2"></select>
+          <input id="inPhone" placeholder="Caller's mobile" inputmode="tel">
+          <button class="primary" id="inCall" type="button">📲 Receive call</button>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <label for="lineMode" style="margin:0;white-space:nowrap">Phone line</label>
+        <select id="lineMode" style="width:auto">
+          <option value="local">Test mode: calls play on this computer</option>
+          <option value="twilio">Real calls through Twilio</option>
+        </select>
+      </div>
+      <div class="warn" id="lineNote"></div>
+    </section>
+
+    <!-- CALL -->
+    <section class="panel call">
+      <div class="callbar">
+        <button class="primary" id="startBtn">▶ Test call</button>
+        <button class="danger" id="endBtn" disabled>■ End call</button>
+        <button id="micBtn" disabled title="Listen now">🎤 Listen</button>
+        <div class="status"><span class="dot" id="dot"></span><span id="statusText">Idle</span></div>
+      </div>
+      <div class="ready" id="ready"></div>
+      <div class="keypad" id="keypad" hidden></div>
+      <div class="transcript" id="transcript">
+        <div class="empty" id="emptyState">Add a contact above and press <b>Add &amp; call now</b>, receive an inbound call, or press <b>Test call</b>. You play the customer: pick options on the keypad or say them, then talk to the agent.</div>
+      </div>
+      <form class="composer" id="composer">
+        <input id="textIn" placeholder="Type the customer's reply (or just speak)…" disabled autocomplete="off">
+        <button id="sendBtn" disabled>Send</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- SCORECARD -->
+  <section class="panel">
+    <h2>Live affinity score</h2>
+    <div class="row" style="justify-content:space-between">
+      <div class="score" id="score">–</div>
+      <span class="badge" id="badge">not scored</span>
+    </div>
+    <div class="bar"><i id="scoreBar"></i></div>
+    <div class="row" style="justify-content:space-between">
+      <span class="hint" id="outcome" style="margin:0"></span>
+      <a id="faqLink" class="hint" style="margin:0" target="_blank" rel="noopener" hidden>How is this scored?</a>
+    </div>
+    <div class="bd" id="breakdown"></div>
+    <dl id="fields"></dl>
+
+    <h2 style="margin-top:22px">Call log</h2>
+    <div class="row">
+      <button id="exportBtn">⬇ Export CSV</button>
+      <button id="clearBtn">Clear</button>
+    </div>
+    <div class="leads" id="leads"></div>
+  </section>
+</main>
+</div>
+
+<!-- ======================= ASSIGNMENT SHEETS ======================= -->
+<div class="view view-wrap" id="view-sheets" hidden>
+  <section class="panel">
+    <div class="row between wrap">
+      <h2 style="margin:0">Assignment sheets: one per project</h2>
+      <div class="row wrap">
+        <input id="sheetSearch" placeholder="Search name or mobile" style="width:200px">
+        <label class="switch"><input type="checkbox" id="sheetClosed"> Show booked, lost and opted out</label>
+        <button id="exportXlsx">⬇ Excel (one sheet per project)</button>
+        <button id="pushAllCrm">⇪ Push this sheet to DaeBuild</button>
+      </div>
+    </div>
+    <div class="tabs" id="sheetTabs" style="margin-top:12px"></div>
+    <div class="table-wrap"><table class="grid" id="sheetTable"></table></div>
+    <div class="hint" id="sheetHint"></div>
+  </section>
+</div>
+
+<!-- ======================= WHATSAPP ======================= -->
+<div class="view view-wrap" id="view-whatsapp" hidden>
+  <div class="admin-grid">
+    <section class="panel">
+      <div class="row between"><h2 style="margin:0">WhatsApp outbox</h2>
+        <select id="outboxFilter" style="width:auto">
+          <option value="all">All messages</option><option value="pending">Pending and failed</option>
+          <option value="sent">Sent</option><option value="cancelled">Cancelled</option>
+        </select></div>
+      <div class="hint" id="waModeNote"></div>
+      <div class="table-wrap" style="margin-top:10px"><table class="grid" id="outboxTable"></table></div>
+    </section>
+    <section class="panel">
+      <h2>Message templates</h2>
+      <div id="templateEditor"></div>
+    </section>
+  </div>
+</div>
+
+<!-- ======================= PROJECTS & TEAM ======================= -->
+<div class="view view-wrap" id="view-admin" hidden>
+  <div class="admin-grid">
+    <section class="panel">
+      <div class="row between wrap"><h2 style="margin:0">Projects</h2>
+        <div class="row"><button id="newProject">+ New project</button><button id="resetDemo">Reset to dummy data</button></div></div>
+      <div class="hint">The agent re-reads this data on every reply, so a change to prices or availability applies from the next sentence.</div>
+      <div class="tabs" id="projectTabs" style="margin-top:12px"></div>
+      <div id="projectEditor"></div>
+    </section>
+    <section class="panel">
+      <h2>Sales reps and site team</h2>
+      <div class="hint" style="margin-top:0">New leads go automatically to an available sales rep on the project: someone who speaks the customer's language first, then whoever has the fewest open leads. Marking a rep absent moves their open customers to others.</div>
+      <div class="table-wrap" style="margin-top:10px"><table class="grid" id="teamTable"></table></div>
+      <button id="addMember" style="margin-top:10px">+ Add team member</button>
+    </section>
+  </div>
+</div>
+
+<!-- ======================= INTEGRATIONS ======================= -->
+<div class="view view-wrap" id="view-integrations" hidden>
+  <section class="panel" style="margin-bottom:16px">
+    <div class="row between wrap"><h2 style="margin:0">Phone calls: Twilio</h2><span class="hint" id="twStatus" style="margin:0"></span></div>
+    <div class="admin-grid" style="margin-top:8px">
+      <div>
+        <ol class="steps">
+          <li>In the <a href="https://console.twilio.com" target="_blank" rel="noopener">Twilio console</a> home page, copy your <b>Account SID</b> and <b>Auth Token</b> into the boxes here.</li>
+          <li>On <b>Overview</b>, press <b>Connect phone bridge</b>. The public address fills in automatically. Keep Glitch running; you can minimise its window. For regular customer use, configure a stable HTTPS address.</li>
+          <li>Press <b>Check connection</b>, choose your Twilio number, and press <b>Send inbound calls to the app</b>.</li>
+          <li>Trial account: in the Twilio console, add your mobile under <b>Phone Numbers → Verified Caller IDs</b>, and allow India under <b>Voice → Settings → Geo permissions</b>. Trial calls start with a short Twilio message; press any key to hear the agent.</li>
+          <li>In the Call workspace, set <b>Phone line</b> to <b>Real calls through Twilio</b>, add your mobile as a contact and press <b>Add &amp; call now</b>. Keep the app open during calls.</li>
+        </ol>
+      </div>
+      <div>
+        <div class="row"><div style="flex:1"><label for="tw_sid">Account SID</label><input id="tw_sid" placeholder="AC…"></div>
+          <div style="flex:1"><label for="tw_token">Auth Token</label><input id="tw_token" type="password"></div></div>
+        <label for="tw_publicUrl">Public HTTPS address</label><input id="tw_publicUrl" placeholder="https://…trycloudflare.com">
+        <label for="tw_from">Twilio number (calls come from and to this number)</label>
+        <select id="tw_from"><option value="">Press Check connection to load your numbers</option></select>
+        <div class="row" style="margin-top:10px"><input type="checkbox" id="tw_fillers"><label for="tw_fillers" style="margin:0">Say a quick "hmm" / "अच्छा जी" when an answer takes over a second</label></div>
+        <div class="row" style="margin-top:10px"><button id="twCheck" class="primary">Check connection</button><button id="twInbound">Send inbound calls to the app</button></div>
+        <pre class="out" id="twResult">Not checked yet.</pre>
+      </div>
+    </div>
+  </section>
+  <div class="admin-grid">
+    <section class="panel">
+      <h2>WhatsApp sending</h2>
+      <label for="waMode">How messages are sent</label>
+      <select id="waMode">
+        <option value="simulate">Simulate (log and pop-up only)</option>
+        <option value="meta">WhatsApp Cloud API (Meta)</option>
+        <option value="webhook">Webhook (Interakt, WATI, AiSensy, Gupshup, Zapier…)</option>
+      </select>
+      <div id="metaBox">
+        <div class="row"><div style="flex:1"><label for="wa_phoneNumberId">Phone number ID</label><input id="wa_phoneNumberId"></div>
+          <div style="width:110px"><label for="wa_apiVersion">API version</label><input id="wa_apiVersion"></div></div>
+        <label for="wa_token">Access token</label><input id="wa_token" type="password">
+        <label for="wa_templateLang">Template language code</label><input id="wa_templateLang" placeholder="en">
+        <h3>Approved template names</h3>
+        <div class="hint" style="margin-top:0">WhatsApp only lets businesses start a conversation with templates approved in Meta Business Manager. Create one per message, with a document header for the welcome message, and enter the names here. Body parameters are sent in this order:</div>
+        <pre class="out" id="metaParams"></pre>
+        <div class="fields">
+          <label>Welcome<input id="mt_welcome"></label><label>Rep change<input id="mt_rep_change"></label>
+          <label>Rep alert<input id="mt_rep_alert"></label><label>Follow-up 1<input id="mt_drip1"></label>
+          <label>Follow-up 2<input id="mt_drip2"></label><label>Follow-up 3<input id="mt_drip3"></label>
+        </div>
+      </div>
+      <div id="webhookBox">
+        <label for="wa_webhookUrl">Webhook URL</label><input id="wa_webhookUrl" placeholder="https://…">
+        <div class="row"><div style="flex:1"><label for="wa_webhookHeader">Auth header name</label><input id="wa_webhookHeader"></div>
+          <div style="flex:2"><label for="wa_webhookKey">Auth header value</label><input id="wa_webhookKey" type="password"></div></div>
+        <div class="hint">The app POSTs JSON: to, to_name, template, text, attachment and params. Map these to your WhatsApp provider's API.</div>
+      </div>
+      <div class="row" style="margin-top:12px"><input type="checkbox" id="wa_notifyReps"><label for="wa_notifyReps" style="margin:0">Also WhatsApp the sales rep when a lead is assigned</label></div>
+      <div class="row"><input type="checkbox" id="wa_dripOn"><label for="wa_dripOn" style="margin:0">Send follow-ups 1, 3 and 6 days after the call</label></div>
+      <div class="row"><input type="checkbox" id="wa_demoSpeed"><label for="wa_demoSpeed" style="margin:0">Demo speed: a follow-up "day" is 1 minute</label></div>
+      <h3>Send a test message</h3>
+      <div class="row"><input id="waTestTo" placeholder="Your mobile" inputmode="tel"><button id="waTest">Send test</button></div>
+      <div class="hint" id="waTestResult"></div>
+    </section>
+    <section class="panel">
+      <h2>DaeBuild CRM</h2>
+      <div class="hint" style="margin-top:0">DaeBuild doesn't publish its API documentation. Ask your DaeBuild account manager for the <b>lead push / third-party lead integration API</b>: the endpoint URL, the header your key goes in, and the field names they expect. Enter them here and rename the fields in the mapping to match. Every customer can then be pushed from the sheets, automatically or by hand.</div>
+      <label for="crm_url">API endpoint URL</label><input id="crm_url" placeholder="https://…daebuild…/api/…">
+      <div class="row">
+        <div style="width:110px"><label for="crm_method">Method</label><select id="crm_method"><option>POST</option><option>PUT</option></select></div>
+        <div style="flex:1"><label for="crm_authHeader">Key header name</label><input id="crm_authHeader" placeholder="api-key"></div>
+        <div style="flex:1"><label for="crm_authPrefix">Key prefix</label><input id="crm_authPrefix" placeholder="e.g. Bearer "></div>
+      </div>
+      <label for="crm_apiKey">API key</label><input id="crm_apiKey" type="password">
+      <div class="row" style="margin-top:10px"><input type="checkbox" id="crm_autoPush"><label for="crm_autoPush" style="margin:0">Push automatically after every call, assignment or stage change</label></div>
+      <label for="crm_template">Field mapping (JSON sent to DaeBuild)</label>
+      <textarea id="crm_template" rows="16" style="font-family:ui-monospace,Consolas,monospace;font-size:12px"></textarea>
+      <div class="hint">Placeholders: {customer} {mobile_10} {customer_phone} {whatsapp} {project} {project_id} {source} {requirement} {budget} {purpose} {financing} {timeline} {site_visit} {callback} {score} {status} {stage} {rep} {rep_phone} {rep_id} {assigned_by} {follow_up} {summary} {language} {created_at}</div>
+      <div class="row" style="margin-top:10px"><button id="crmTest">Preview and send a test lead</button><button id="crmReset" class="small">Reset mapping</button></div>
+      <pre class="out" id="crmResult">Press the button to see exactly what will be sent.</pre>
+    </section>
+  </div>
+</div>
+
+<!-- ======================= TESTS ======================= -->
+<div class="view view-wrap" id="view-tests" hidden>
+  <div class="admin-grid">
+    <section class="panel">
+      <h2>Speed and quality test (A/B)</h2>
+      <div class="hint" style="margin-top:0">Runs the same 3-turn call through every brain on your Groq account: a price question in Hinglish, a request to switch to Marathi, and a Marathi answer. It also makes the same Marathi sentence with each Sarvam voice. It measures how fast the first words are ready, checks the answers, and recommends the fastest setup that still gets them right. Uses your real keys: about 12 Groq requests and 4 Sarvam clips.</div>
+      <div class="row" style="margin-top:10px"><button id="abRun" class="primary">Run speed test</button><button id="abApply" hidden>Use the recommended setup</button></div>
+      <div class="table-wrap" style="margin-top:10px"><table class="grid" id="abTable"></table></div>
+      <div class="hint" id="abVerdict"></div>
+    </section>
+    <section class="panel">
+      <h2>App self-test</h2>
+      <div class="hint" style="margin-top:0">Runs every call flow with simulated customers and a simulated AI: outbound and inbound calls, the IVR, language switching, errors, real-call phone replies, assignment and WhatsApp. It uses no keys, makes no calls and sends no messages. Your data is backed up first and restored afterwards.</div>
+      <div class="row" style="margin-top:10px"><button id="selfRun" class="primary">Run self-test</button></div>
+      <div id="selfOut" style="margin-top:10px"></div>
+    </section>
+  </div>
+  <section class="panel" style="margin-top:16px">
+    <div class="row between wrap"><h2 style="margin:0">Call diagnostics</h2>
+      <div class="row"><button id="diagRefresh" class="small">Refresh</button><button id="diagCopy" class="small">Copy for support</button><button id="diagClear" class="small">Clear</button></div></div>
+    <div class="hint" id="diagSummary"></div>
+    <div class="table-wrap" style="margin-top:8px"><table class="grid" id="diagTable"></table></div>
+  </section>
+</div>
+
+<div id="toasts"></div>
+
+<script src="seed-data.js"></script>
+<script src="backend.js"></script>
+<script src="voice-core.js"></script>
+<script src="telephony.js" defer></script>
+<script src="tests.js" defer></script>
+<script src="workspace.js" defer></script>
+<script src="ops-core.js" defer></script>
+<script src="operations.js" defer></script>
+<script src="vendor/leaflet/leaflet.js" defer></script>
+<script src="project-core.js" defer></script>
+<script src="project-workspace.js" defer></script>
+<script src="glitch-theme.js" defer></script>
+<script>
+// If the app's other files didn't load (an old copy of serve.ps1 is still running), say so instead of freezing
+if (typeof loadDb !== 'function' || typeof SEED === 'undefined'){
+  document.body.innerHTML = '<div style="max-width:560px;margin:15vh auto;padding:24px;font:16px/1.5 system-ui;border:1px solid #e4e2dc;border-radius:12px">' +
+    '<h2 style="margin-top:0">The app could not load its files</h2><p>An old copy of the local server is probably still running. ' +
+    'Close its PowerShell window (or press Ctrl+C in it), then run this again and reload the page:</p>' +
+    '<pre style="background:#f1efe9;padding:10px;border-radius:8px;white-space:pre-wrap">powershell -ExecutionPolicy Bypass -File .\\lead-qualifier\\serve.ps1</pre></div>';
+  throw new Error('backend.js or seed-data.js did not load');
+}
+// Opened by double-clicking index.html: the page works, but it can't reach the local server (phone calls, Sarvam relay, CRM)
+if (location.protocol === 'file:'){
+  const b = document.createElement('div'); b.className = 'filebanner';
+  b.innerHTML = '⚠ This page was opened straight from the file, so real calls, WhatsApp sending and the CRM can\'t connect. Start <code>serve.ps1</code>, then use <a href="http://localhost:8080">http://localhost:8080</a>.';
+  document.body.prepend(b);
+}
+// ---------- Config ----------
+const FAQ_URL = 'https://claude.ai/artifact/2ZEfidDPB6HorJNH4LKru7'; // "Affinity Score FAQ" doc explaining the scoring
+const MODEL = 'claude-opus-5';
+
+// ---------- Affinity score: one rubric for every brain ----------
+// The AI (or the scripted demo) only reports WHAT the lead said, as one level per signal.
+// The points below are applied by this code, so the same answers always give the same score.
+// Each level: [id, points, short label, definition]
+const RUBRIC = [
+  { key:'budget_fit', label:'Budget fit', max:25, levels:[
+    ['fits', 25, 'Fits', 'Budget covers the price of the configuration they want'],
+    ['stretch', 12, 'Slight stretch', 'Slightly below the price (within about 15%) or says they are flexible'],
+    ['no', 0, 'Below price', 'Clearly below the project price'] ]},
+  { key:'timeline', label:'Buying timeline', max:20, levels:[
+    ['within_3m', 20, 'Within 3 months', 'Plans to buy within 3 months'],
+    ['3_to_6m', 10, '3 to 6 months', 'Plans to buy in 3 to 6 months'],
+    ['over_6m', 3, '6+ months', 'More than 6 months away, or just exploring'] ]},
+  { key:'financing', label:'Financing', max:15, levels:[
+    ['ready', 15, 'Funds ready', 'Own funds, or home loan already sanctioned'],
+    ['loan_needed', 8, 'Needs a loan', 'Will need a home loan that is not yet sanctioned'] ]},
+  { key:'authority', label:'Decision authority', max:15, levels:[
+    ['self', 15, 'Decides alone', 'The lead makes the decision alone'],
+    ['joint_involved', 12, 'Joint, involved', 'Joint decision and the co-decider is involved, e.g. joining the site visit'],
+    ['joint_absent', 6, 'Needs approval', 'Someone else must decide or approve and is not involved yet'] ]},
+  { key:'requirement_match', label:'Requirement match', max:10, levels:[
+    ['match', 10, 'Matches', 'Wants a configuration and area this project offers'],
+    ['partial', 5, 'Partial', 'Partly matches, e.g. right BHK but prefers another area'],
+    ['no', 0, 'No match', 'Wants something this project does not offer'] ]},
+  { key:'site_visit', label:'Site visit', max:15, levels:[
+    ['booked', 15, 'Booked', 'Agreed a specific day and time'],
+    ['interested', 6, 'Interested', 'Wants to visit but no date fixed'],
+    ['declined', 0, 'Declined', 'Does not want to visit'] ]},
+];
+const STATUS_LABEL = { hot:'Hot', warm:'Warm', cold:'Cold', early:'Too early', dnc:'Do not call', invalid:'Invalid' };
+const MODEL_OUTCOMES = ['in_progress','visit_booked','qualified','callback_requested','transfer_requested','not_interested','do_not_call','wrong_number'];
+const OUTCOMES = { in_progress:'In progress', visit_booked:'Site visit booked', qualified:'Qualified', callback_requested:'Callback requested',
+  transfer_requested:'Transferred to sales rep', not_interested:'Not interested', do_not_call:'Opted out (do not call)',
+  wrong_number:'Wrong number', no_response:'No response', completed:'Completed', failed:'Call failed' };
+
+function computeScore(lead){
+  const s = lead.signals || {};
+  const breakdown = RUBRIC.map(r => {
+    const lv = r.levels.find(l => l[0] === s[r.key]);
+    return { key:r.key, label:r.label, max:r.max, level: lv ? lv[0] : 'unknown', short: lv ? lv[2] : 'Not discussed', pts: lv ? lv[1] : 0 };
+  });
+  let score = breakdown.reduce((a, b) => a + b.pts, 0);
+  const known = breakdown.filter(b => b.level !== 'unknown').length;
+  let status = score >= 70 ? 'hot' : score >= 40 ? 'warm' : 'cold';
+  if (known < 3 && score < 40) status = 'early';
+  if (lead.outcome === 'not_interested') status = 'cold';
+  if (lead.outcome === 'do_not_call'){ status = 'dnc'; score = 0; }
+  if (lead.outcome === 'wrong_number'){ status = 'invalid'; score = 0; }
+  return { ...lead, score, status, breakdown, known };
+}
+function nextAction(L){
+  if (L.outcome === 'do_not_call') return 'Add to do-not-call list. Do not contact again';
+  if (L.outcome === 'wrong_number') return 'Remove number from the list';
+  if (L.outcome === 'transfer_requested') return 'Sales rep to take over now';
+  if (L.outcome === 'callback_requested') return 'Call back ' + (L.callback ? 'at: ' + L.callback : 'at the requested time');
+  if (L.outcome === 'no_response' || L.outcome === 'failed') return 'Try calling again later';
+  if ((L.signals || {}).site_visit === 'booked') return 'Confirm the site visit on WhatsApp and assign a sales rep';
+  if (L.status === 'hot') return 'Sales rep to call within 24 hours';
+  if (L.status === 'warm') return 'Send brochure and floor plans on WhatsApp, follow up in a week';
+  return 'Add to nurture list';
+}
+
+// What the agent writes down about each lead: [key, scorecard label, hint for the model]
+const LEAD_FIELDS = [
+  ['name','Name','lead\'s name'],
+  ['requirement','Looking for','configuration and type, e.g. 3 BHK apartment'],
+  ['location','Location','preferred area or city'],
+  ['origin','Coming from','current pincode or nearby landmark and city, exactly as supplied by the customer; not the preferred property location'],
+  ['budget','Budget','e.g. 80 lakh to 1 crore'],
+  ['purpose','Purpose','self-use or investment'],
+  ['financing','Financing','home loan needed / loan sanctioned / own funds'],
+  ['timeline','Timeline','when they plan to buy'],
+  ['decision_maker','Decision','who decides, e.g. self, with spouse'],
+  ['site_visit','Site visit','booked day and time, or "" if not booked'],
+  ['whatsapp','WhatsApp','"same" if they confirmed this number is on WhatsApp, their WhatsApp number if different, "no" if they do not want WhatsApp, "" if not asked yet'],
+  ['callback','Callback','requested callback time, if any'],
+  ['personal','Personal notes','personal details they mention, separated by "; ": workplace, children\'s school or college, family, commute, likes and worries'],
+  ['summary','Summary','one-line English summary for the sales team, including the questions they asked'],
+  ['next_action','Next step','recommended next step, in English'],
+];
+const leadProps = Object.fromEntries(LEAD_FIELDS.map(([k,,d]) => [k, {type:'string', description:d}]));
+const signalProps = Object.fromEntries(RUBRIC.map(r => [r.key, {type:'string', enum:[...r.levels.map(l => l[0]), 'unknown']}]));
+
+const LEAD_SCHEMA = {
+  type:'object', additionalProperties:false,
+  required:['reply','language','end_call','lead'],
+  properties:{
+    reply:{type:'string', description:'What the agent says next, in the call language, native script. 1-2 short sentences.'},
+    language:{type:'string', enum: LANG_CODES, description:'Language code of the reply'},
+    end_call:{type:'boolean', description:'true once the goodbye has been said'},
+    lead:{
+      type:'object', additionalProperties:false,
+      required:[...LEAD_FIELDS.map(f => f[0]), 'signals', 'outcome'],
+      properties:{
+        ...leadProps,
+        signals:{ type:'object', additionalProperties:false, required: RUBRIC.map(r => r.key), properties: signalProps },
+        outcome:{ type:'string', enum: MODEL_OUTCOMES },
+      }
+    }
+  }
+};
+function normalizeLead(raw){
+  const lead = { ...(raw || {}) }, sig = lead.signals || {};
+  lead.signals = Object.fromEntries(RUBRIC.map(r => [r.key, r.levels.some(l => l[0] === sig[r.key]) ? sig[r.key] : 'unknown']));
+  if (!MODEL_OUTCOMES.includes(lead.outcome)) lead.outcome = 'in_progress';
+  LEAD_FIELDS.forEach(([k]) => { lead[k] = lead[k] == null ? '' : String(lead[k]); });
+  return lead;
+}
+
+function mergeLeadRecord(current, raw, fillOnly=false){
+  const normalized=normalizeLead(raw), next={...current,signals:{...current.signals}};
+  for(const [key] of LEAD_FIELDS){const value=raw[key];if(value!=null&&String(value).trim()&&(!fillOnly||!current[key]))next[key]=normalized[key];}
+  for(const r of RUBRIC){const value=raw.signals?.[r.key];if(value&&value!=='unknown'&&r.levels.some(l=>l[0]===value)&&(!fillOnly||!next.signals[r.key]||next.signals[r.key]==='unknown'))next.signals[r.key]=value;}
+  if(!fillOnly&&MODEL_OUTCOMES.includes(raw.outcome))next.outcome=raw.outcome;
+  next.personal=mergeNotes(current.personal,raw.personal);next.phone=current.phone;return computeScore(next);
+}
+// ---------- Settings & keys ----------
+LANGS.forEach(([code,name]) => $('lang').add(new Option(name, code)));
+$('cLang').add(new Option('Language: ask in IVR', 'auto'));
+LANGS.forEach(([code,name]) => $('cLang').add(new Option(name, code)));
+renderProjectSelects();
+['campProject','cProject','inLine','extraNotes','agent','lang','mode','gender','style','rate','pitch','volume','stt','silence','tts','expr','sarvamModel'].forEach(id => {
+  const v = store.get('lq.re.'+id); if (v) $(id).value = v; else if(id==='mode')$(id).value='script'; else if(id==='stt' && window.estateDesktop)$(id).value='whisper';
+  $(id).addEventListener('change', () => store.set('lq.re.'+id, $(id).value));
+});
+['ivrOn','pauses','autoListen'].forEach(id => {
+  const v = store.get('lq.re.'+id); if (v !== null) $(id).checked = v === '1';
+  $(id).addEventListener('change', () => store.set('lq.re.'+id, $(id).checked ? '1' : '0'));
+});
+$('company').value = db.company;
+$('company').onchange = () => { db.company = $('company').value.trim() || db.company; saveDb(); };
+if (FAQ_URL){ $('faqLink').href = FAQ_URL; $('faqLink').hidden = false; }
+function setLang(code){ if (LANG_CODES.includes(code)){ $('lang').value = code; loadVoices(); if(typeof applyVoiceProfile==='function')applyVoiceProfile(code); } }
+const currentProject = () => project(call.projectId) || project($('campProject').value) || db.projects[0];
+document.querySelectorAll('.subtabs .tab').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.subtabs .tab').forEach(x => x.classList.toggle('on', x === b));
+  $('sub-out').hidden = b.dataset.sub !== 'out'; $('sub-in').hidden = b.dataset.sub !== 'in';
+});
+
+const savedKey = store.get('lq.key');
+if (savedKey){ $('apiKey').value = savedKey; $('rememberKey').checked = true; }
+$('rememberKey').addEventListener('change', syncKey);
+$('apiKey').addEventListener('change', syncKey);
+function syncKey(){ $('rememberKey').checked ? store.set('lq.key', $('apiKey').value) : store.del('lq.key'); }
+const savedGroq = store.get('lq.groqKey');
+if (savedGroq){ $('groqKey').value = savedGroq; $('rememberGroq').checked = true; }
+$('groqModel').addEventListener('change', () => store.set('lq.groqModel', $('groqModel').value));
+$('rememberGroq').addEventListener('change', syncGroqKey);
+$('groqKey').addEventListener('change', () => { syncGroqKey(); loadGroqModels(); });
+$('groqRefresh').onclick = loadGroqModels;
+if (savedGroq) loadGroqModels();
+
+// Ask Groq which chat models this key can use (names change often), then pick the best available one.
+const GROQ_PREFERRED = ['openai/gpt-oss-120b', 'moonshotai/kimi-k2', 'llama-4-maverick', 'qwen', 'llama-3.3-70b', 'openai/gpt-oss-20b', 'llama-4-scout'];
+// Why the Groq key isn't usable, in plain words, shown under the key and on the status line
+var groqProblem = null, groqRetry = null; // var: the saved key is checked on page load, before this line runs
+var groqInfo = {}; // model -> { ctx: context window, maxOut: longest answer } from Groq's model list
+function fillGroqModels(ids, note){
+  const rank = id => { const i = GROQ_PREFERRED.findIndex(p => id.includes(p)); return i < 0 ? 99 : i; };
+  const best = [...ids].sort((a,b) => rank(a) - rank(b))[0], saved = store.get('lq.groqModel');
+  const sel = $('groqModel'); sel.innerHTML = '';
+  ids.forEach(id => sel.add(new Option(id + (id === best ? '  (recommended)' : ''), id)));
+  sel.value = ids.includes(saved) ? saved : best;
+  $('groqHint').textContent = note;
+}
+async function loadGroqModels(){
+  // Tidy a pasted key: stray spaces, quotes, or a "Bearer " prefix copied along with it
+  const cleaned = $('groqKey').value.trim().replace(/^["']|["']$/g, '').replace(/^Bearer\s+/i, '').trim();
+  if (cleaned !== $('groqKey').value){ $('groqKey').value = cleaned; syncGroqKey(); }
+  const key = cleaned; if (!key) return;
+  clearTimeout(groqRetry); groqProblem = null;
+  $('groqHint').textContent = 'Loading models…'; renderReadiness();
+  if (!/^gsk_/.test(key)){
+    groqProblem = { label:'not a Groq key', text:'This is not a Groq key: Groq keys start with "gsk_". Copy one from console.groq.com/keys and paste it here.' };
+  } else {
+    let res, data = {};
+    try { res = await fetch('https://api.groq.com/openai/v1/models', { headers:{ authorization:'Bearer ' + key } }); data = await res.json().catch(() => ({})); }
+    catch (e){ res = null; }
+    const msg = data?.error?.message || (res ? 'HTTP ' + res.status : 'no answer');
+    if (res && res.ok){
+      groqWhisper = (data.data || []).map(m => m.id).filter(id => /whisper/i.test(id));
+      (data.data || []).forEach(m => groqInfo[m.id] = { ctx: m.context_window || 0, maxOut: m.max_completion_tokens || 0 });
+      // Chat models only, and big enough to hold the agent's instructions plus a whole call (at least 16k tokens).
+      // allam is an Arabic-only model.
+      const ids = (data.data || []).filter(m => m.active !== false && !(m.context_window && m.context_window < 16000)).map(m => m.id)
+        .filter(id => !/whisper|tts|playai|guard|orpheus|distil|prompt-guard|safeguard|compound|allam/i.test(id)).sort();
+      if (ids.length) fillGroqModels(ids, `✓ Key works. ${ids.length} models available; the recommended one handles Indian languages best.`);
+      else groqProblem = { label:'no chat models on this key', text:'The key works but Groq offers it no chat models. Check your plan at console.groq.com.' };
+    } else if (res && (res.status === 401 || res.status === 403)){
+      groqProblem = { label:'Groq rejected the key', text:`Groq rejected this key (${msg}). It may be mistyped, or deleted in the Groq console. Create a new key at console.groq.com/keys, paste it here and click outside the box.` };
+    } else {
+      // Busy (429/5xx) or no connection: the key is probably fine, so keep calls working with the usual models and check again soon
+      const known = [...$('groqModel').options].map(o => o.value).filter(Boolean);
+      fillGroqModels(known.length ? known : ['openai/gpt-oss-120b','openai/gpt-oss-20b'],
+        `Groq didn't answer the model check (${msg}). Using the usual models for now; checking again in 30 seconds.`);
+      groqRetry = setTimeout(loadGroqModels, 30000);
+    }
+  }
+  if (groqProblem){ $('groqModel').innerHTML = '<option value="">No models: fix the key</option>'; $('groqHint').textContent = '⚠ ' + groqProblem.text; }
+  renderReadiness();
+}
+// What's set up for calls, shown under the call buttons, so a missing key is obvious before pressing Call
+function renderReadiness(){
+  const mode = $('mode').value, groqKey = $('groqKey').value.trim(), items = [];
+  if (mode === 'script') items.push(['Brain: scripted demo (English/Hindi)', 'ok']);
+  else if (mode === 'ai') items.push($('apiKey').value.trim() ? ['Brain: Claude ✓', 'ok'] : ['Brain: add Anthropic key', 'bad']);
+  else if (!groqKey) items.push(['Brain: add Groq key', 'bad']);
+  else if (!$('groqModel').value) items.push(/Loading/.test($('groqHint').textContent) ? ['Brain: checking Groq…', '']
+    : [`Brain: ${groqProblem ? groqProblem.label : 'Groq key not working'} (click to fix)`, 'bad', () => { $('groqKey').focus(); $('groqKey').scrollIntoView({ block:'center' }); }]);
+  else items.push(['Brain: Groq ✓ ' + $('groqModel').value.split('/').pop(), 'ok']);
+  items.push($('tts').value === 'sarvam' && $('sarvamKey').value.trim() ? ['Voice: Sarvam ✓', 'ok'] : ['Voice: browser (robotic)', '']);
+  items.push($('stt').value === 'whisper' && groqKey ? ['Listening: Whisper ✓', 'ok'] : ['Listening: browser', '']);
+  $('ready').innerHTML = '';
+  items.forEach(([t, cls, click]) => {
+    const s = document.createElement('span'); s.textContent = t; if (cls) s.className = cls;
+    if (click){ s.style.cursor = 'pointer'; s.title = groqProblem ? groqProblem.text : ''; s.onclick = click; }
+    $('ready').appendChild(s);
+  });
+}
+['mode','groqKey','groqModel','apiKey','tts','sarvamKey','stt'].forEach(id => $(id).addEventListener('change', renderReadiness));
+function syncGroqKey(){ $('rememberGroq').checked ? store.set('lq.groqKey', $('groqKey').value) : store.del('lq.groqKey'); }
+$('mode').addEventListener('change', syncMode); syncMode();
+function syncMode(){ $('keyBox').hidden = $('mode').value !== 'ai'; $('groqBox').hidden = $('mode').value !== 'groq'; }
+
+// ---------- Browser voices ----------
+let voices = [];
+const voiceScore = (v, lang) => (v.lang.replace('_','-')===lang?2:0) + (/natural|online|neural/i.test(v.name)?3:0) + (/google/i.test(v.name)?1:0);
+const voicesFor = lang => voices.filter(v => v.lang.replace('_','-').toLowerCase().startsWith(lang.split('-')[0])).sort((a,b) => voiceScore(b,lang) - voiceScore(a,lang));
+function loadVoices(){
+  voices = speechSynthesis.getVoices();
+  const lang = $('lang').value, matches = voicesFor(lang), sel = $('voice');
+  sel.innerHTML = '';
+  matches.forEach(v => sel.add(new Option(`${v.name} (${v.lang})`, v.name)));
+  sel.add(new Option('Browser default', ''));
+  const saved = store.get('lq.re.voice.' + lang);
+  if (saved && matches.some(v => v.name === saved)) sel.value = saved;
+  $('voiceHint').textContent = matches.length ? '' :
+    `No ${langName(lang)} system voice is installed. Choose Sarvam for supported languages, or add a Windows speech voice under Settings > Time & language > Speech.`;
+}
+speechSynthesis.onvoiceschanged = loadVoices; loadVoices();
+$('lang').addEventListener('change', loadVoices);
+$('voice').addEventListener('change', () => store.set('lq.re.voice.' + $('lang').value, $('voice').value));
+[['rate','×'],['pitch',''],['volume',''],['silence',' s'],['expr','']].forEach(([id, unit]) => {
+  const show = () => $(id + 'Val').textContent = (+$(id).value).toFixed(id === 'silence' ? 1 : 2) + unit;
+  $(id).addEventListener('input', show); show();
+});
+
+// ---------- Sarvam Bulbul (natural Indian TTS) ----------
+const SARVAM_LANG = { 'en-IN':'en-IN','hi-IN':'hi-IN','mr-IN':'mr-IN','ml-IN':'ml-IN','gu-IN':'gu-IN','ta-IN':'ta-IN',
+  'te-IN':'te-IN','kn-IN':'kn-IN','bn-IN':'bn-IN','pa-IN':'pa-IN','or-IN':'od-IN' };
+const SARVAM_SPEAKERS = {
+  female: ['priya','ritu','neha','pooja','simran','kavya','ishita','shreya','roopa','tanya','shruti','suhani','kavitha','rupali'],
+  male:   ['rahul','aditya','shubh','rohan','amit','dev','ratan','varun','manan','sumit','kabir','aayan','ashutosh','advait','anand','tarun','sunny','mani','gokul','vijay','mohit','rehan','soham'],
+};
+const SARVAM_SPEAKERS_V2 = { female: ['anushka','manisha','vidya','arya'], male: ['abhilash','karun','hitesh'] };
+const speakersFor = (model, g) => (model === 'bulbul:v2' ? SARVAM_SPEAKERS_V2 : SARVAM_SPEAKERS)[g];
+function loadSpeakers(){
+  const sel = $('speaker'), g = $('gender').value, m = $('sarvamModel').value, saved = EstateVoice.profile(store, $('lang').value).speaker;
+  sel.innerHTML = '';
+  speakersFor(m, g).forEach(s => sel.add(new Option(s[0].toUpperCase() + s.slice(1), s)));
+  if (saved && speakersFor(m, g).includes(saved)) sel.value = saved;
+}
+$('gender').addEventListener('change', loadSpeakers); $('sarvamModel').addEventListener('change', loadSpeakers); loadSpeakers();
+function applyVoiceProfile(lang){
+  const p=EstateVoice.profile(store,lang); $('gender').value=p.gender; $('sarvamModel').value=p.model;
+  loadSpeakers(); $('speaker').value=speakersFor(p.model,p.gender).includes(p.speaker)?p.speaker:speakersFor(p.model,p.gender)[0];
+  $('rate').value=p.pace; $('expr').value=p.temperature;
+  if(p.browserVoice && [...$('voice').options].some(o=>o.value===p.browserVoice))$('voice').value=p.browserVoice;
+  $('rate').dispatchEvent(new Event('input')); $('expr').dispatchEvent(new Event('input'));
+}
+function saveActiveVoice(){EstateVoice.save(store,$('lang').value,{model:$('sarvamModel').value,gender:$('gender').value,speaker:$('speaker').value,pace:+$('rate').value,temperature:+$('expr').value,browserVoice:$('voice').value});}
+['speaker','gender','sarvamModel','rate','expr','voice'].forEach(id=>$(id).addEventListener('change',saveActiveVoice));
+$('lang').addEventListener('change',()=>applyVoiceProfile($('lang').value));
+applyVoiceProfile($('lang').value);
+const savedSarvam = store.get('lq.sarvamKey');
+if (savedSarvam){ $('sarvamKey').value = savedSarvam; $('rememberSarvam').checked = true; }
+function syncSarvamKey(){ $('rememberSarvam').checked ? store.set('lq.sarvamKey', $('sarvamKey').value) : store.del('lq.sarvamKey'); }
+$('sarvamKey').addEventListener('change', syncSarvamKey); $('rememberSarvam').addEventListener('change', syncSarvamKey);
+function syncTts(){ $('sarvamBox').hidden = $('tts').value !== 'sarvam'; $('browserVoiceBox').hidden = $('tts').value === 'sarvam'; }
+$('tts').addEventListener('change', syncTts); syncTts();
+
+// Audio is cached, so IVR prompts are generated once and replay instantly (and free) on every call.
+const ttsCache = new Map();
+let currentAudio = null, sarvamWarned = false, sarvamViaProxy = false;
+// sampleRate 8000 = phone quality: smaller clips, made and fetched faster; phone lines can't carry more anyway
+function sarvamAudio(text, lang, sampleRate = 24000, model = EstateVoice.profile(store,lang).model, speaker = EstateVoice.profile(store,lang).speaker){
+  const profile=EstateVoice.profile(store,lang);
+  const v3 = model === 'bulbul:v3';
+  const opts = { text, language_code: SARVAM_LANG[lang], model, speaker,
+    pace: Math.min(v3 ? 2 : 3, Math.max(v3 ? 0.5 : 0.3, profile.pace)), speech_sample_rate: sampleRate, output_audio_codec:'mp3',
+    ...(v3 ? { temperature: profile.temperature } : {}) };
+  const key = JSON.stringify(opts);
+  if (!ttsCache.has(key)){
+    const p = fetchSarvam(JSON.stringify(opts));
+    ttsCache.set(key, p);
+    p.catch(() => ttsCache.delete(key));
+    if (ttsCache.size > 300) ttsCache.delete(ttsCache.keys().next().value);
+  }
+  return ttsCache.get(key);
+}
+async function fetchSarvam(body){
+  const headers = { 'content-type':'application/json', 'api-subscription-key': $('sarvamKey').value.trim() };
+  let status, data;
+  if (!sarvamViaProxy){
+    try { const res = await fetch('https://api.sarvam.ai/text-to-speech', { method:'POST', headers, body, signal:AbortSignal.timeout(6500) }); status = res.status; data = await res.json().catch(() => ({})); }
+    catch (e){ if(e.name==='TimeoutError'||e.name==='AbortError')throw new Error('Voice provider timed out'); sarvamViaProxy = true; } // blocked by the browser (CORS): go through serve.ps1 instead
+  }
+  if (sarvamViaProxy){
+    const r = await viaProxy('https://api.sarvam.ai/text-to-speech', { method:'POST', headers, body });
+    status = r.status; try { data = JSON.parse(r.body); } catch(e){ data = { message: r.body }; }
+  }
+  if (status < 200 || status >= 300){ const e = new Error(data?.error?.message || data?.message || ('HTTP ' + status)); e.status = status; throw e; }
+  return 'data:audio/mpeg;base64,' + data.audios[0];
+}
+function playAudio(src, gen){
+  return new Promise(resolve => {
+    if (gen !== speakGen) return resolve();
+    const a = currentAudio = new Audio(src);
+    a.volume = +$('volume').value;
+    a.onended = a.onerror = () => resolve();
+    a.play().catch(() => resolve());
+  });
+}
+const useSarvam = lang => $('tts').value === 'sarvam' && $('sarvamKey').value.trim() && SARVAM_LANG[lang];
+
+let speakGen = 0;
+function stopSpeaking(){ speakGen++; speechSynthesis.cancel(); if (currentAudio){ currentAudio.pause(); currentAudio = null; } }
+async function speak(text, lang = $('lang').value){
+  if (call.line === 'twilio' && call.active) return phoneSay(text, lang); // real call: goes down the phone line
+  stopSpeaking();
+  const gen = speakGen;
+  if (useSarvam(lang)){
+    try { return await playAudio(await withRetry(() => sarvamAudio(text, lang)), gen); } // one request keeps natural intonation
+    catch (e){ if (!sarvamWarned){ sarvamWarned = true; addSys('⚠ Sarvam voice failed (' + e.message + '). Using browser voice.'); } }
+  } else if ($('tts').value === 'sarvam' && !sarvamWarned){
+    sarvamWarned = true;
+    addSys($('sarvamKey').value.trim() ? 'Sarvam has no voice for this language. Using browser voice.' : 'Add a Sarvam key for natural voices. Using browser voice for now.');
+  }
+  // Browser voice: sentence by sentence with short pauses sounds less robotic than one long utterance.
+  const parts = $('pauses').checked ? (text.match(/[^.!?।॥؟]+[.!?।॥؟]*\s*/g) || [text]) : [text];
+  for (let i = 0; i < parts.length; i++){
+    if (gen !== speakGen) return;
+    await speakOne(parts[i].trim(), lang);
+    if (i < parts.length - 1 && gen === speakGen) await sleep(180 + Math.random() * 180);
+  }
+}
+// Several prompts in a row (IVR menus). Audio for all of them is fetched in parallel first.
+async function speakSeq(parts){
+  parts.forEach(p => { if (useSarvam(p.lang)) sarvamAudio(p.text, p.lang).catch(() => {}); });
+  for (const p of parts){
+    if (!call.active || call.ivrEarly != null) return;
+    await speak(p.text, p.lang);
+  }
+}
+let voiceSilentWarned = false;
+function speakOne(text, lang){
+  return new Promise(resolve => {
+    if (!text) return resolve();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    const profile=EstateVoice.profile(store,lang);
+    const v = voices.find(v=>v.name===profile.browserVoice) || voicesFor(lang)[0];
+    if (v) u.voice = v;
+    u.rate = profile.pace; u.pitch = +$('pitch').value; u.volume = +$('volume').value;
+    let done = false, started = false; const finish = () => { if(!done){ done = true; resolve(); } };
+    u.onstart = () => { started = true; };
+    u.onend = finish; u.onerror = finish;
+    // If the browser voice never starts (no voice for this language, sound blocked), don't sit in silence
+    setTimeout(() => {
+      if (started || done) return;
+      if (!voiceSilentWarned){ voiceSilentWarned = true; addSys('⚠ The browser voice is not playing. Check your speakers, pick another voice, or add a Sarvam key for natural voices. The call carries on; the text is shown here.'); }
+      finish();
+    }, 5000);
+    setTimeout(finish, 2000 + text.length * 90 / u.rate); // safety net: some browsers never fire onend
+    speechSynthesis.speak(u);
+  });
+}
+
+const SAMPLES = {
+  'en-IN': c => `Hi, this is ${c.agent} from ${c.company}. You'd enquired about ${c.project}, right? Is this a good time to talk?`,
+  'hi-IN': c => `हेलो, ${c.company} से कॉल है। आपने ${c.project} के बारे में इन्क्वायरी की थी ना? अभी दो मिनट बात हो सकती है?`,
+  'mr-IN': c => `हॅलो, ${c.company} मधून कॉल आहे. तुम्ही ${c.project} बद्दल इन्क्वायरी केली होती ना? आत्ता दोन मिनिटं बोलू शकतो का?`,
+  'ml-IN': c => `ഹലോ, ${c.company}-ൽ നിന്നാണ് വിളിക്കുന്നത്. ${c.project}-നെ കുറിച്ച് എൻക്വയറി ചെയ്തിരുന്നല്ലോ? ഇപ്പോൾ രണ്ട് മിനിറ്റ് സംസാരിക്കാമോ?`,
+  'gu-IN': c => `હેલો, ${c.company} તરફથી કૉલ છે. તમે ${c.project} વિશે ઇન્ક્વાયરી કરી હતી ને? અત્યારે બે મિનિટ વાત થઈ શકે?`,
+  'ta-IN': c => `ஹலோ, ${c.company}-லிருந்து கால் பண்றோம். இப்போ ரெண்டு நிமிஷம் பேசலாமா?`,
+  'te-IN': c => `హలో, ${c.company} నుంచి కాల్ చేస్తున్నాం. ఇప్పుడు రెండు నిమిషాలు మాట్లాడొచ్చా?`,
+  'kn-IN': c => `ಹಲೋ, ${c.company} ಇಂದ ಕಾಲ್ ಮಾಡ್ತಿದ್ದೀವಿ. ಈಗ ಎರಡು ನಿಮಿಷ ಮಾತಾಡಬಹುದಾ?`,
+  'bn-IN': c => `হ্যালো, ${c.company} থেকে ফোন করছি। এখন দু'মিনিট কথা বলা যাবে?`,
+  'pa-IN': c => `ਸਤ ਸ੍ਰੀ ਅਕਾਲ ਜੀ, ${c.company} ਤੋਂ ਕਾਲ ਹੈ। ਹੁਣ ਦੋ ਮਿੰਟ ਗੱਲ ਹੋ ਸਕਦੀ ਹੈ?`,
+  'or-IN': c => `ନମସ୍କାର, ${c.company} ରୁ କଲ୍ କରୁଛୁ। ଏବେ ଦୁଇ ମିନିଟ୍ କଥା ହୋଇପାରିବ କି?`,
+  'as-IN': c => `নমস্কাৰ, ${c.company}ৰ পৰা ফোন কৰিছোঁ। এতিয়া দুমিনিট কথা পাতিব পাৰিবনে?`,
+  'ur-IN': c => `السلام علیکم، ${c.company} سے کال ہے۔ کیا ابھی دو منٹ بات ہو سکتی ہے؟`,
+};
+const ctx = () => { const p = currentProject(); return { agent:$('agent').value, company: db.company, project: p.name, location: p.location,
+  name: call.lead?.name || '', f: $('gender').value === 'female', last4: call.phone ? digits(call.phone).slice(-4) : '' }; };
+$('testVoice').onclick = () => speak((SAMPLES[$('lang').value] || SAMPLES['en-IN'])(ctx()));
+
+// ---------- Speech recognition (STT) ----------
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, interimEl = null, whisperWarned = false;
+function syncStt(){ $('srWarn').hidden = !!SR || $('stt').value === 'whisper'; }
+$('stt').addEventListener('change', syncStt); syncStt();
+const inIvr = () => (call.phase || '').startsWith('ivr');
+
+function listen(){
+  if (!call.active) return;
+  if (call.line === 'twilio') return phoneListen(); // real call: Twilio listens on the phone
+  if ($('stt').value === 'whisper' && $('groqKey').value.trim()) return listenWhisper();
+  if ($('stt').value === 'whisper' && !whisperWarned){ whisperWarned = true; addSys('Whisper needs a Groq key (Brain → Groq). Using browser recognition for now.'); }
+  listenBrowser();
+}
+
+// The lead said nothing in this listening window. Keep the line open like a real caller would:
+// keep listening, check in ("Hello, can you hear me?") after ~20 s, and hang up only after ~1 minute of silence.
+function onSilence(){
+  if (!call.active || call.busy) return;
+  if (inIvr()){ // the IVR has its own timeouts
+    if (call.ivrResolve && !call.micBlocked) setTimeout(() => { if (call.active && call.ivrResolve) listen(); }, 250);
+    return;
+  }
+  const quietFor = (Date.now() - (call.lastHeard || call.startedAt)) / 1000;
+  if (quietFor > 60) return endCall('No response from lead: call ended', 'no_response');
+  if ($('mode').value !== 'script' && quietFor > 20 && !call.nudged){
+    call.nudged = true;
+    return aiTurn('[The lead has been silent for about 20 seconds. Briefly check if they can hear you, in the current language.]');
+  }
+  if (call.micBlocked){ setStatus('', 'Mic blocked: type replies'); return; }
+  setStatus('listening', 'Listening…');
+  setTimeout(() => { if (call.active && !call.busy) listen(); }, 250);
+}
+
+// --- Groq Whisper: record until the lead pauses, then transcribe ---
+let micStream = null, audioCtx = null, whisperJob = null, groqWhisper = [];
+async function listenWhisper(){
+  stopListening();
+  try {
+    if (!micStream) micStream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
+  } catch(e){ call.micBlocked = true; addSys('Microphone blocked. Allow mic access, or type replies / use the keypad.'); setStatus('', 'Mic blocked'); return; }
+  if (!call.active) return;
+  audioCtx = audioCtx || new AudioContext();
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
+  const src = audioCtx.createMediaStreamSource(micStream), an = audioCtx.createAnalyser();
+  an.fftSize = 2048; src.connect(an);
+  const buf = new Float32Array(an.fftSize), chunks = [];
+  const recorder = new MediaRecorder(micStream);
+  recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
+  const job = whisperJob = { cancelled:false, recorder, timer:null, gotSpeech:false };
+  const t0 = performance.now(), silenceMs = +$('silence').value * 1000;
+  let noise = 0.01, speechStart = 0, lastVoice = 0, voicedMs = 0, last = t0;
+  recorder.start(100);
+  setStatus('listening', inIvr() ? 'Waiting for keypress or voice…' : 'Listening…');
+  job.timer = setInterval(() => {
+    an.getFloatTimeDomainData(buf);
+    let sum = 0; for (const v of buf) sum += v*v;
+    const rms = Math.sqrt(sum / buf.length), now = performance.now(), dt = now - last; last = now;
+    if (now - t0 < 300){ noise = Math.max((noise + rms) / 2, 0.004); return; } // calibrate to room noise
+    const thr = Math.max(0.012, noise * 2.5);
+    if (rms > thr){
+      voicedMs += dt; lastVoice = now;
+      if (!speechStart && voicedMs > 150){ speechStart = now; setStatus('listening', 'Hearing you…'); }
+    } else if (!speechStart) noise = noise * 0.95 + rms * 0.05;
+    const finished = speechStart && now - lastVoice > silenceMs;
+    const timedOut = (!speechStart && now - t0 > 10000) || now - t0 > 30000;
+    if (finished || timedOut){ clearInterval(job.timer); src.disconnect(); job.gotSpeech = !!speechStart; recorder.stop(); }
+  }, 50);
+  recorder.onstop = async () => {
+    if (job.cancelled) return;
+    if (!job.gotSpeech) return onSilence();
+    setStatus('thinking', 'Transcribing…');
+    try {
+      const text = await withRetry(() => transcribe(new Blob(chunks, { type: recorder.mimeType })));
+      if (job.cancelled || !call.active) return;
+      text ? handleUser(text) : listen(); // only noise: keep listening
+    } catch(e){ addSys('⚠ Transcription failed: ' + e.message + '. Please repeat.'); if (call.active) listen(); }
+  };
+}
+async function transcribe(blob){
+  const fd = new FormData();
+  fd.append('file', blob, 'speech.' + (/ogg/.test(blob.type) ? 'ogg' : /mp4/.test(blob.type) ? 'mp4' : 'webm'));
+  fd.append('model', ['whisper-large-v3', 'whisper-large-v3-turbo'].find(m => groqWhisper.includes(m)) || groqWhisper[0] || 'whisper-large-v3');
+  const lc = $('lang').value.split('-')[0];
+  // While the lead is choosing a language we don't know it yet, so let Whisper detect it. It has no Odia.
+  if (store.get('lq.autoLanguage') === '0' && call.phase !== 'ivr_lang' && lc !== 'or') fd.append('language', lc);
+  fd.append('temperature', '0');
+  fd.append('response_format', 'json');
+  const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+    method:'POST', headers:{ authorization:'Bearer ' + $('groqKey').value.trim() }, body: fd
+  });
+  const data = await res.json();
+  if (!res.ok) throw apiError(res, data);
+  const t = (data.text || '').trim();
+  // Whisper sometimes "hears" these in background noise
+  if (t.length < 1 || /^(thank you|thanks for watching|you|bye|subtitles? by.*)[.!]*$/i.test(t)) return '';
+  return t;
+}
+
+function listenBrowser(){
+  if (!call.active || !SR) { $('textIn').focus(); return; }
+  stopListening();
+  rec = new SR();
+  rec.lang = $('lang').value;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+  let gotFinal = false;
+  rec.onstart = () => setStatus('listening', inIvr() ? 'Waiting for keypress or voice…' : 'Listening…');
+  rec.onresult = e => {
+    let interim = '', final = '';
+    for (const r of e.results) (r.isFinal ? (final += r[0].transcript) : (interim += r[0].transcript));
+    if (final){ gotFinal = true; clearInterim(); rec.stop(); handleUser(final.trim()); }
+    else showInterim(interim);
+  };
+  rec.onerror = e => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){ call.micBlocked = true; addSys('Microphone blocked. Allow mic access, or type replies / use the keypad.'); }
+    else if (e.error !== 'no-speech' && e.error !== 'aborted') addSys('Speech error: ' + e.error);
+  };
+  rec.onend = () => { clearInterim(); if (!gotFinal && call.active && !call.busy) onSilence(); };
+  try { rec.start(); } catch(e){}
+}
+function stopListening(){
+  if (rec){ rec.onend = null; try{ rec.abort(); }catch(e){} rec = null; }
+  if (whisperJob){ whisperJob.cancelled = true; clearInterval(whisperJob.timer); try{ whisperJob.recorder.stop(); }catch(e){} whisperJob = null; }
+}
+function showInterim(t){
+  if (!interimEl){ interimEl = bubble('user interim', ''); }
+  interimEl.textContent = t;
+}
+function clearInterim(){ if (interimEl){ interimEl.remove(); interimEl = null; } }
+
+// ---------- Phone sounds (ringback, keypad tones, hold music) ----------
+function tone(freqs, ms, vol = 0.06){
+  return new Promise(resolve => {
+    try {
+      audioCtx = audioCtx || new AudioContext();
+      const g = audioCtx.createGain(); g.gain.value = vol * +$('volume').value; g.connect(audioCtx.destination);
+      const osc = freqs.map(f => { const o = audioCtx.createOscillator(); o.frequency.value = f; o.connect(g); o.start(); return o; });
+      setTimeout(() => { osc.forEach(o => o.stop()); g.disconnect(); resolve(); }, ms);
+    } catch(e){ resolve(); }
+  });
+}
+const DTMF = { '1':[697,1209],'2':[697,1336],'3':[697,1477],'4':[770,1209],'5':[770,1336],'6':[770,1477],
+               '7':[852,1209],'8':[852,1336],'9':[852,1477],'*':[941,1209],'0':[941,1336],'#':[941,1477] };
+async function ringback(rings){ // Indian ringback: 0.4 s on, 0.2 s off, 0.4 s on, 2 s off
+  for (let i = 0; i < rings && call.active; i++){ await tone([400,425],400); await sleep(200); await tone([400,425],400); await sleep(2000); }
+}
+async function ringtone(rings){ // incoming call
+  for (let i = 0; i < rings && call.active; i++){ for (const f of [880, 988, 880, 988]) await tone([f], 120, 0.05); await sleep(1200); }
+}
+async function holdMusic(ms){
+  const notes = [523,659,784,659,587,698,880,698], end = Date.now() + ms;
+  for (let i = 0; Date.now() < end && call.active; i++) await tone([notes[i % notes.length]], 280, 0.04);
+}
+
+// ---------- Transcript UI ----------
+function bubble(cls, text){
+  $('emptyState')?.remove();
+  const d = document.createElement('div'); d.className = 'msg ' + cls; d.textContent = text;
+  $('transcript').appendChild(d); $('transcript').scrollTop = 1e9; return d;
+}
+const addSys = t => bubble('sys', t);
+function setStatus(kind, text){ $('dot').className = 'dot ' + kind; $('statusText').textContent = text; }
+
+function renderLead(l){
+  const c = computeScore(l || {});
+  const scored = c.known > 0 || ['dnc','invalid'].includes(c.status);
+  $('score').textContent = scored ? c.score : '–';
+  $('scoreBar').style.width = (scored ? c.score : 0) + '%';
+  const b = $('badge'); b.className = 'badge ' + (scored ? c.status : ''); b.textContent = scored ? STATUS_LABEL[c.status] : 'not scored';
+  $('outcome').textContent = c.outcome && c.outcome !== 'in_progress' ? OUTCOMES[c.outcome] || c.outcome : '';
+  const bd = $('breakdown'); bd.innerHTML = '';
+  c.breakdown.forEach(r => {
+    const row = document.createElement('div'); row.className = 'bd-row';
+    row.innerHTML = '<span></span><b></b><span class="lvl"></span><div class="mini"><i></i></div>';
+    row.children[0].textContent = r.label; row.children[1].textContent = `${r.pts}/${r.max}`;
+    row.children[2].textContent = r.short; row.querySelector('.mini i').style.width = (100 * r.pts / r.max) + '%';
+    bd.appendChild(row);
+  });
+  const dl = $('fields'); dl.innerHTML = '';
+  LEAD_FIELDS.forEach(([k, label]) => {
+    if (['callback','whatsapp','personal'].includes(k) && !c[k]) return;
+    const dt = document.createElement('dt'), dd = document.createElement('dd');
+    dt.textContent = label; dd.textContent = c[k] || '–';
+    dl.append(dt, dd);
+  });
+}
+renderLead({});
+
+// ---------- Keypad ----------
+['1','2','3','4','5','6','7','8','9','*','0','#'].forEach(k => {
+  const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = k;
+  btn.onclick = () => pressKey(k); $('keypad').appendChild(btn);
+});
+function pressKey(k){
+  if (!call.active) return;
+  if (call.line !== 'twilio') tone(DTMF[k], 160);
+  bubble('user key', '⌨ ' + k); call.transcript.push({ who:'lead', text:'[pressed ' + k + ']' });
+  if (!inIvr()){
+    if (k === '*' && call.phase === 'agent' && !call.busy) return changeLanguage();
+    if (call.line === 'twilio' && !call.busy) listen(); // keep the phone line listening
+    return;
+  }
+  call.lastHeard = Date.now();
+  if (call.ivrResolve) call.ivrResolve('#' + k);
+  else { call.ivrEarly = '#' + k; stopSpeaking(); } // pressing during the prompt skips the rest of it
+}
+
+// ---------- Call lifecycle ----------
+const call = { active:false, busy:false, messages:[], lead:{}, transcript:[], step:0 };
+
+$('startBtn').onclick = () => startCall();
+$('endBtn').onclick = () => endCall('Call ended by you');
+$('micBtn').onclick = listen;
+$('composer').onsubmit = e => { e.preventDefault(); const t = $('textIn').value.trim(); if (t && call.active && !call.busy){ $('textIn').value=''; stopListening(); handleUser(t); } };
+$('inCall').onclick = () => {
+  const phone = normPhone($('inPhone').value);
+  if (!phone) return alert("Enter the caller's mobile number (10 digits starting with 6-9).");
+  startCall({ inbound: { projectId: $('inLine').value, phone } });
+};
+
+async function startCall(opts = {}){
+  if (call.active) return false;
+  const mode = $('mode').value;
+  const cannot = msg => { // say why on screen, never fail silently
+    $('transcript').innerHTML = ''; addSys('⚠ ' + msg); setStatus('', 'Call not started');
+    $('transcript').scrollIntoView({ block:'nearest' }); if (opts.line !== 'twilio') alert(msg); return false;
+  };
+  if (mode === 'ai' && !$('apiKey').value.trim()) return cannot('Add your Anthropic API key (left panel → Brain), or switch the conversation engine to "Scripted demo".');
+  if (mode === 'groq' && !$('groqKey').value.trim()) return cannot('Add your Groq API key (left panel → Brain), or switch the conversation engine to "Scripted demo".');
+  if (mode === 'groq' && !$('groqModel').value){
+    setStatus('thinking', 'Checking Groq…'); await loadGroqModels(); renderReadiness();
+    if (!$('groqModel').value) return cannot(`Can't start the call because Groq didn't answer: ${$('groqHint').textContent.replace(/^⚠ Could not load models: /, '')}. Check the Groq key in the left panel → Brain (paste it again, then click outside the box), or switch the conversation engine to "Scripted demo".`);
+  }
+  const contact = opts.contact || null, inbound = opts.inbound || null;
+  const projectId = (contact && project(contact.projectId) ? contact.projectId : null) || inbound?.projectId || $('campProject').value;
+  const phone = contact?.phone || inbound?.phone || normPhone($('leadPhone').value) || '';
+  const known = phone ? findCustomer(phone, projectId, (opts.line||'local')!=='twilio') : null;
+  const line = opts.line || 'local';
+  Object.assign(call, { session:uid(), attemptId:null, active:true, busy:false, messages:[], transcript:[], step:0, contact, phase:'dialing', intent: null,
+    direction: inbound ? 'inbound' : 'outbound', projectId, phone, line, sid: opts.sid || null, remoteEnded: false, transferTo: null, historyKeep: 0, fails: 0,
+    startedAt: Date.now(), lastHeard: 0, nudged: false, micBlocked: false, ivrResolve: null, ivrEarly: null,
+    lead: { name: contact?.name || known?.name || (inbound ? '' : $('leadName').value.trim()), phone, signals:{}, outcome:'in_progress' } });
+  $('transcript').innerHTML = ''; renderLead(call.lead);
+  toggleControls(true);
+  const p = currentProject();
+  if (line === 'twilio'){
+    addSys(inbound ? `📲 Real call from ${phone} on the ${p.name} line` + (known ? ` · returning customer ${known.name || ''}` : '')
+                   : `📞 ${contact?.name || phone} answered the real call · ${p.name}`);
+  } else if (inbound){
+    addSys(`📲 Incoming call from ${phone} on the ${p.name} line (${p.inboundNumber})` + (known ? ` · returning customer ${known.name || ''}` : ''));
+    setStatus('thinking', 'Ringing…'); await ringtone(1);
+    if (!call.active) return true;
+    addSys('Answered by the AI receptionist');
+  } else if (contact){
+    addSys(`📞 Calling ${contact.name} · ${contact.phone} · ${p.name}\n(test mode: that phone won't ring; the call plays here and you answer as the customer)`);
+    setStatus('thinking', 'Ringing…'); await ringback(2);
+    if (!call.active) return true;
+    addSys('Call connected on this computer');
+  } else addSys(`Test call connected · ${p.name}`);
+  call.startedAt = Date.now();
+  const presetLang = contact && contact.lang !== 'auto' ? contact.lang : known?.language;
+  if ($('ivrOn').checked) runIvr(presetLang);
+  else { if (presetLang) setLang(presetLang); startAgent(agentOpening()); }
+  return true;
+}
+const agentOpening = () => call.direction === 'inbound'
+  ? '[INBOUND CALL CONNECTED. The caller just got through to the project line. Thank them for calling, introduce yourself and ask how you can help.]'
+  : `[CALL CONNECTED. The lead just picked up.${call.lead.name ? ' Lead name on file: ' + call.lead.name + '.' : ''} Greet them and begin.]`;
+
+function startAgent(context){
+  call.phase = 'agent';
+  if ($('mode').value === 'script'){
+    if (!SCRIPT[$('lang').value]){ addSys('The scripted demo only speaks English and Hindi. Continuing in English.'); setLang('en-IN'); }
+    if (call.direction === 'inbound') addSys('Tip: the scripted demo only asks fixed questions. Use Groq or Claude to have the receptionist answer questions about the project.');
+    return scriptTurn(null);
+  }
+  return aiTurn(context, true);
+}
+
+function endCall(reason, outcome){
+  if (!call.active) return;
+  call.active = false; stopListening(); stopSpeaking();
+  if (call.ivrResolve) call.ivrResolve(null);
+  if (outcome) call.lead.outcome = outcome;
+  else if (!call.lead.outcome || call.lead.outcome === 'in_progress') call.lead.outcome = 'completed';
+  if (call.line === 'twilio' && !call.remoteEnded) phoneHangup(); // say the last words, then hang up (or transfer)
+  call.lead = computeScore(call.lead);
+  if (!call.lead.next_action || ['do_not_call','callback_requested','transfer_requested','no_response','failed'].includes(call.lead.outcome)) call.lead.next_action = nextAction(call.lead);
+  renderLead(call.lead);
+  toggleControls(false); setStatus('', 'Idle'); addSys(reason);
+  if (call.transcript.length > 1 || call.contact || call.direction === 'inbound') saveLead();
+  if (call.contact) finishContact(call.contact.id, call.lead);
+  onCallFinished({ simulated:call.line!=='twilio', lead: call.lead, phone: call.phone, projectId: call.projectId, direction: call.direction, language: $('lang').value });
+  if (call.lead.outcome === 'failed' && $('autoDial').checked){ $('autoDial').checked = false; addSys('Auto-dial paused because the call failed to start.'); }
+  scheduleNextDial();
+}
+
+function toggleControls(on){
+  $('startBtn').disabled = on; $('endBtn').disabled = !on; $('inCall').disabled = on;
+  $('micBtn').disabled = !on; $('textIn').disabled = !on; $('sendBtn').disabled = !on;
+  $('keypad').hidden = !on;
+  document.querySelectorAll('.dial-btn').forEach(b => b.disabled = on);
+}
+
+async function agentSay(text, endAfter){
+  call.transcript.push({ who:'agent', text }); bubble('agent', text);
+  setStatus('speaking', 'Agent speaking…');
+  await speak(text);
+  if (!call.active) return;
+  if (endAfter) return endCall('Call completed ✔ (agent said goodbye)');
+  if ($('autoListen').checked) listen(); else setStatus('', 'Your turn: speak (🎤) or type');
+}
+
+function handleUser(text){
+  if (!call.active) return;
+  call.lastHeard = Date.now(); call.nudged = false;
+  call.transcript.push({ who:'lead', text }); bubble('user', text);
+  if (inIvr()){ if (call.ivrResolve) call.ivrResolve(text); return; }
+  if (call.phase !== 'agent') return;
+  if(store.get('lq.autoLanguage')!=='0'){
+    const requested=EstateVoice.requestedLanguage(text), detected=EstateVoice.detect(text,$('lang').value);
+    if(LANG_CODES.includes(detected))applyLanguage(detected);
+    if(requested && $('mode').value==='script'){
+      const s=SCRIPT[requested]||SCRIPT['en-IN']; return agentSay(s.q[Math.max(0,call.step-1)](ctx()),false);
+    }
+  }
+  $('mode').value === 'script' ? scriptTurn(text) : aiTurn(text);
+}
+
+// ---------- IVR: language menu → main menu → route ----------
+const IVR_LANGS = ['en-IN','hi-IN','mr-IN','ml-IN','gu-IN','ta-IN','te-IN','kn-IN','bn-IN']; // key 1..9
+const IVR = {
+  'en-IN': { pick:'For English, press 1.',
+    hello:'Hello! This is a call from {company} about your enquiry for {project}.',
+    menu:'To talk to our assistant now, press 1. To book a site visit, press 2. To speak to our sales team, press 3. For a call back later, press 4. To stop calls from us, press 0.',
+    transfer:"Sure, please hold. I'm connecting you to our sales team.",
+    callbackAsk:'No problem. When would be a good time to call you back?',
+    callbackDone:"Thank you! We'll call you back then. Have a nice day.",
+    dnc:"Understood, we won't call you again. Sorry for the trouble.",
+    noInput:"Sorry, we couldn't hear you. We'll try again later. Thank you!",
+    invalid:"Sorry, that's not a valid option." },
+  'hi-IN': { pick:'हिंदी के लिए 2 दबाएँ।',
+    hello:'नमस्ते! {company} से कॉल है, आपकी {project} वाली इन्क्वायरी के बारे में।',
+    menu:'अभी हमारे असिस्टेंट से बात करने के लिए 1 दबाएँ। साइट विज़िट बुक करने के लिए 2 दबाएँ। हमारी सेल्स टीम से बात करने के लिए 3 दबाएँ। बाद में कॉल बैक के लिए 4 दबाएँ। हमारी कॉल्स बंद करने के लिए 0 दबाएँ।',
+    transfer:'ज़रूर, एक मिनट होल्ड कीजिए। आपको हमारी सेल्स टीम से कनेक्ट कर रहे हैं।',
+    callbackAsk:'कोई बात नहीं। आपको किस टाइम कॉल बैक करें?',
+    callbackDone:'थैंक यू! हम तभी आपको कॉल करेंगे। आपका दिन अच्छा रहे।',
+    dnc:'ठीक है, हम आपको दोबारा कॉल नहीं करेंगे। तकलीफ़ के लिए माफ़ी।',
+    noInput:'माफ़ कीजिए, आपकी आवाज़ नहीं आई। हम बाद में फिर कोशिश करेंगे। धन्यवाद!',
+    invalid:'माफ़ कीजिए, यह सही ऑप्शन नहीं है।' },
+  'mr-IN': { pick:'मराठीसाठी 3 दाबा.',
+    hello:'नमस्कार! {company} मधून कॉल आहे, तुमच्या {project} च्या इन्क्वायरीबद्दल.',
+    menu:'आत्ता आमच्या असिस्टंटशी बोलण्यासाठी 1 दाबा. साइट व्हिजिट बुक करण्यासाठी 2 दाबा. आमच्या सेल्स टीमशी बोलण्यासाठी 3 दाबा. नंतर कॉल बॅकसाठी 4 दाबा. आमचे कॉल्स बंद करण्यासाठी 0 दाबा.',
+    transfer:'नक्की, एक मिनिट होल्ड करा. तुम्हाला आमच्या सेल्स टीमशी जोडत आहोत.',
+    callbackAsk:'काही हरकत नाही. तुम्हाला कधी कॉल बॅक करू?',
+    callbackDone:'धन्यवाद! आम्ही तेव्हा तुम्हाला कॉल करू. तुमचा दिवस छान जावो.',
+    dnc:'ठीक आहे, आम्ही तुम्हाला पुन्हा कॉल करणार नाही. त्रासाबद्दल क्षमस्व.',
+    noInput:'माफ करा, तुमचा आवाज आला नाही. आम्ही नंतर पुन्हा प्रयत्न करू. धन्यवाद!',
+    invalid:'माफ करा, हा योग्य पर्याय नाही.' },
+  'ml-IN': { pick:'മലയാളത്തിന് 4 അമർത്തുക.',
+    hello:'നമസ്കാരം! {project}-നെ കുറിച്ചുള്ള നിങ്ങളുടെ എൻക്വയറിയെ പറ്റി {company}-ൽ നിന്നാണ് വിളിക്കുന്നത്.',
+    menu:'ഇപ്പോൾ ഞങ്ങളുടെ അസിസ്റ്റന്റുമായി സംസാരിക്കാൻ 1 അമർത്തുക. സൈറ്റ് വിസിറ്റ് ബുക്ക് ചെയ്യാൻ 2 അമർത്തുക. ഞങ്ങളുടെ സെയിൽസ് ടീമുമായി സംസാരിക്കാൻ 3 അമർത്തുക. പിന്നീട് തിരികെ വിളിക്കാൻ 4 അമർത്തുക. ഞങ്ങളുടെ കോളുകൾ നിർത്താൻ 0 അമർത്തുക.',
+    transfer:'തീർച്ചയായും, ഒന്ന് ഹോൾഡ് ചെയ്യൂ. ഞങ്ങളുടെ സെയിൽസ് ടീമുമായി കണക്ട് ചെയ്യുന്നു.',
+    callbackAsk:'കുഴപ്പമില്ല. എപ്പോൾ തിരികെ വിളിക്കണം?',
+    callbackDone:'നന്ദി! ആ സമയത്ത് ഞങ്ങൾ വിളിക്കാം. നല്ലൊരു ദിവസം ആശംസിക്കുന്നു.',
+    dnc:'ശരി, ഇനി ഞങ്ങൾ വിളിക്കില്ല. ബുദ്ധിമുട്ടിച്ചതിൽ ക്ഷമിക്കണം.',
+    noInput:'ക്ഷമിക്കണം, ശബ്ദം കേൾക്കാൻ കഴിഞ്ഞില്ല. ഞങ്ങൾ പിന്നീട് വീണ്ടും വിളിക്കാം. നന്ദി!',
+    invalid:'ക്ഷമിക്കണം, അത് ശരിയായ ഓപ്ഷൻ അല്ല.' },
+  'gu-IN': { pick:'ગુજરાતી માટે 5 દબાવો.',
+    hello:'નમસ્તે! તમારી {project} વિશેની ઇન્ક્વાયરી માટે {company} તરફથી કૉલ છે.',
+    menu:'અત્યારે અમારા આસિસ્ટન્ટ સાથે વાત કરવા 1 દબાવો. સાઇટ વિઝિટ બુક કરવા 2 દબાવો. અમારી સેલ્સ ટીમ સાથે વાત કરવા 3 દબાવો. પછીથી કૉલ બેક માટે 4 દબાવો. અમારા કૉલ બંધ કરવા 0 દબાવો.',
+    transfer:'ચોક્કસ, થોડું હોલ્ડ કરો. તમને અમારી સેલ્સ ટીમ સાથે જોડીએ છીએ.',
+    callbackAsk:'કોઈ વાંધો નહીં. તમને ક્યારે કૉલ બેક કરીએ?',
+    callbackDone:'આભાર! અમે ત્યારે તમને કૉલ કરીશું. તમારો દિવસ શુભ રહે.',
+    dnc:'બરાબર, અમે તમને ફરી કૉલ નહીં કરીએ. તકલીફ બદલ માફ કરશો.',
+    noInput:'માફ કરશો, તમારો અવાજ સંભળાયો નહીં. અમે પછી ફરી પ્રયત્ન કરીશું. આભાર!',
+    invalid:'માફ કરશો, આ યોગ્ય વિકલ્પ નથી.' },
+  'ta-IN': { pick:'தமிழுக்கு 6 அழுத்தவும்.',
+    hello:'வணக்கம்! {project} பற்றிய உங்கள் விசாரணைக்காக {company}-லிருந்து அழைக்கிறோம்.',
+    menu:'இப்போது எங்கள் அசிஸ்டன்ட்டுடன் பேச 1 அழுத்தவும். சைட் விசிட் புக் செய்ய 2 அழுத்தவும். எங்கள் சேல்ஸ் டீமுடன் பேச 3 அழுத்தவும். பிறகு திரும்ப அழைக்க 4 அழுத்தவும். எங்கள் அழைப்புகளை நிறுத்த 0 அழுத்தவும்.',
+    transfer:'சரி, கொஞ்சம் ஹோல்ட் பண்ணுங்க. எங்கள் சேல்ஸ் டீமுடன் இணைக்கிறோம்.',
+    callbackAsk:'பரவாயில்லை. எப்போது திரும்ப அழைக்கட்டும்?',
+    callbackDone:'நன்றி! அந்த நேரத்தில் அழைக்கிறோம். நல்ல நாளாக அமையட்டும்.',
+    dnc:'சரி, இனி உங்களை அழைக்க மாட்டோம். சிரமத்திற்கு மன்னிக்கவும்.',
+    noInput:'மன்னிக்கவும், உங்கள் குரல் கேட்கவில்லை. பிறகு மீண்டும் அழைக்கிறோம். நன்றி!',
+    invalid:'மன்னிக்கவும், அது சரியான தேர்வு இல்லை.' },
+  'te-IN': { pick:'తెలుగు కోసం 7 నొక్కండి.',
+    hello:'నమస్కారం! {project} గురించి మీ ఎంక్వైరీ కోసం {company} నుంచి కాల్ చేస్తున్నాం.',
+    menu:'ఇప్పుడే మా అసిస్టెంట్‌తో మాట్లాడటానికి 1 నొక్కండి. సైట్ విజిట్ బుక్ చేయడానికి 2 నొక్కండి. మా సేల్స్ టీమ్‌తో మాట్లాడటానికి 3 నొక్కండి. తర్వాత కాల్ బ్యాక్ కోసం 4 నొక్కండి. మా కాల్స్ ఆపడానికి 0 నొక్కండి.',
+    transfer:'తప్పకుండా, కాస్త హోల్డ్ చేయండి. మా సేల్స్ టీమ్‌కి కనెక్ట్ చేస్తున్నాం.',
+    callbackAsk:'పర్లేదు. మీకు ఎప్పుడు తిరిగి కాల్ చేయమంటారు?',
+    callbackDone:'ధన్యవాదాలు! అప్పుడే మీకు కాల్ చేస్తాం. మీ రోజు బాగుండాలి.',
+    dnc:'సరే, మేము మళ్ళీ కాల్ చేయం. ఇబ్బందికి క్షమించండి.',
+    noInput:'క్షమించండి, మీ మాట వినిపించలేదు. తర్వాత మళ్ళీ ప్రయత్నిస్తాం. ధన్యవాదాలు!',
+    invalid:'క్షమించండి, అది సరైన ఆప్షన్ కాదు.' },
+  'kn-IN': { pick:'ಕನ್ನಡಕ್ಕಾಗಿ 8 ಒತ್ತಿ.',
+    hello:'ನಮಸ್ಕಾರ! {project} ಬಗ್ಗೆ ನಿಮ್ಮ ಎನ್‌ಕ್ವೈರಿಗಾಗಿ {company} ಇಂದ ಕಾಲ್ ಮಾಡ್ತಿದ್ದೀವಿ.',
+    menu:'ಈಗ ನಮ್ಮ ಅಸಿಸ್ಟೆಂಟ್ ಜೊತೆ ಮಾತಾಡಲು 1 ಒತ್ತಿ. ಸೈಟ್ ವಿಸಿಟ್ ಬುಕ್ ಮಾಡಲು 2 ಒತ್ತಿ. ನಮ್ಮ ಸೇಲ್ಸ್ ಟೀಮ್ ಜೊತೆ ಮಾತಾಡಲು 3 ಒತ್ತಿ. ನಂತರ ಕಾಲ್ ಬ್ಯಾಕ್‌ಗಾಗಿ 4 ಒತ್ತಿ. ನಮ್ಮ ಕಾಲ್‌ಗಳನ್ನು ನಿಲ್ಲಿಸಲು 0 ಒತ್ತಿ.',
+    transfer:'ಖಂಡಿತ, ಸ್ವಲ್ಪ ಹೋಲ್ಡ್ ಮಾಡಿ. ನಮ್ಮ ಸೇಲ್ಸ್ ಟೀಮ್‌ಗೆ ಕನೆಕ್ಟ್ ಮಾಡ್ತಿದ್ದೀವಿ.',
+    callbackAsk:'ಪರವಾಗಿಲ್ಲ. ನಿಮಗೆ ಯಾವಾಗ ಕಾಲ್ ಬ್ಯಾಕ್ ಮಾಡ್ಲಿ?',
+    callbackDone:'ಧನ್ಯವಾದಗಳು! ಆಗ ನಿಮಗೆ ಕಾಲ್ ಮಾಡ್ತೀವಿ. ನಿಮ್ಮ ದಿನ ಚೆನ್ನಾಗಿರಲಿ.',
+    dnc:'ಸರಿ, ನಾವು ಮತ್ತೆ ಕಾಲ್ ಮಾಡಲ್ಲ. ತೊಂದರೆಗೆ ಕ್ಷಮಿಸಿ.',
+    noInput:'ಕ್ಷಮಿಸಿ, ನಿಮ್ಮ ಧ್ವನಿ ಕೇಳಿಸಲಿಲ್ಲ. ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸ್ತೀವಿ. ಧನ್ಯವಾದಗಳು!',
+    invalid:'ಕ್ಷಮಿಸಿ, ಅದು ಸರಿಯಾದ ಆಯ್ಕೆ ಅಲ್ಲ.' },
+  'bn-IN': { pick:'বাংলার জন্য 9 টিপুন।',
+    hello:'নমস্কার! {project} নিয়ে আপনার এনকোয়ারির জন্য {company} থেকে ফোন করছি।',
+    menu:'এখনই আমাদের অ্যাসিস্ট্যান্টের সাথে কথা বলতে 1 টিপুন। সাইট ভিজিট বুক করতে 2 টিপুন। আমাদের সেলস টিমের সাথে কথা বলতে 3 টিপুন। পরে কল ব্যাকের জন্য 4 টিপুন। আমাদের কল বন্ধ করতে 0 টিপুন।',
+    transfer:'অবশ্যই, একটু হোল্ড করুন। আমাদের সেলস টিমের সাথে কানেক্ট করছি।',
+    callbackAsk:'কোনো সমস্যা নেই। কখন আপনাকে কল ব্যাক করব?',
+    callbackDone:'ধন্যবাদ! তখনই আপনাকে কল করব। আপনার দিন ভালো কাটুক।',
+    dnc:'ঠিক আছে, আমরা আর কল করব না। অসুবিধার জন্য দুঃখিত।',
+    noInput:'দুঃখিত, আপনার কথা শোনা যায়নি। পরে আবার চেষ্টা করব। ধন্যবাদ!',
+    invalid:'দুঃখিত, এটা সঠিক অপশন নয়।' },
+};
+const fill = (t, c) => t.replace(/\{(\w+)\}/g, (_, k) => c[k] ?? '');
+// Pressing * at any time brings back the language menu (spoken requests can be misheard on a real call,
+// because the phone's speech recognition listens for the current language only)
+const IVR_STAR = {
+  'en-IN':'To change the language, press star at any time.', 'hi-IN':'भाषा बदलने के लिए कभी भी स्टार दबाएँ।',
+  'mr-IN':'भाषा बदलण्यासाठी कधीही स्टार दाबा.', 'ml-IN':'ഭാഷ മാറ്റാൻ എപ്പോൾ വേണമെങ്കിലും സ്റ്റാർ അമർത്തുക.',
+  'gu-IN':'ભાષા બદલવા માટે ગમે ત્યારે સ્ટાર દબાવો.', 'ta-IN':'மொழியை மாற்ற எப்போது வேண்டுமானாலும் ஸ்டார் அழுத்தவும்.',
+  'te-IN':'భాష మార్చడానికి ఎప్పుడైనా స్టార్ నొక్కండి.', 'kn-IN':'ಭಾಷೆ ಬದಲಾಯಿಸಲು ಯಾವಾಗ ಬೇಕಾದರೂ ಸ್ಟಾರ್ ಒತ್ತಿ.',
+  'bn-IN':'ভাষা বদলাতে যেকোনো সময় স্টার টিপুন।',
+};
+async function changeLanguage(){
+  const before = call.phase;
+  call.phase = 'ivr_lang';
+  const answer = await ivrAsk(IVR_LANGS.map(l => ({ text: IVR[l].pick, lang: l })), 9000);
+  if (!call.active) return;
+  const lang = parseLangChoice(answer);
+  call.phase = before;
+  if (!lang) return listen();
+  setLang(lang); addSys('Language changed to ' + langName(lang));
+  if ($('mode').value === 'script'){
+    if (!SCRIPT[lang]) setLang('en-IN');
+    return agentSay((SCRIPT[$('lang').value] || SCRIPT['en-IN']).q[Math.max(0, call.step - 1)](ctx()), false);
+  }
+  aiTurn(`[The caller pressed * and chose ${langShort(lang)}. Continue in ${langShort(lang)} from where you were: briefly repeat your last question in ${langShort(lang)}.]`);
+}
+
+// Spoken choices: native digits, number words and keywords in each IVR language
+const NUM_WORDS = {};
+[ ['zero','one','two','three','four','five','six','seven','eight','nine'],
+  ['शून्य','एक','दो','तीन','चार','पाँच','छह','सात','आठ','नौ'],
+  ['shunya','ek','do','teen','char','paanch','chhe','saat','aath','nau'],
+  ['शून्य','एक','दोन','तीन','चार','पाच','सहा','सात','आठ','नऊ'],
+  ['പൂജ്യം','ഒന്ന്','രണ്ട്','മൂന്ന്','നാല്','അഞ്ച്','ആറ്','ഏഴ്','എട്ട്','ഒമ്പത്'],
+  ['શૂન્ય','એક','બે','ત્રણ','ચાર','પાંચ','છ','સાત','આઠ','નવ'],
+  ['பூஜ்ஜியம்','ஒன்று','இரண்டு','மூன்று','நான்கு','ஐந்து','ஆறு','ஏழு','எட்டு','ஒன்பது'],
+  ['సున్నా','ఒకటి','రెండు','మూడు','నాలుగు','ఐదు','ఆరు','ఏడు','ఎనిమిది','తొమ్మిది'],
+  ['ಸೊನ್ನೆ','ಒಂದು','ಎರಡು','ಮೂರು','ನಾಲ್ಕು','ಐದು','ಆರು','ಏಳು','ಎಂಟು','ಒಂಬತ್ತು'],
+  ['শূন্য','এক','দুই','তিন','চার','পাঁচ','ছয়','সাত','আট','নয়'],
+].forEach(words => words.forEach((w, i) => { if (w) NUM_WORDS[w] = String(i); }));
+Object.assign(NUM_WORDS, { 'पांच':'5', 'छः':'6' });
+const LANG_WORDS = { 'en-IN':['english','इंग्लिश'], 'hi-IN':['hindi','हिंदी','हिन्दी'], 'mr-IN':['marathi','मराठी'],
+  'ml-IN':['malayalam','മലയാളം'], 'gu-IN':['gujarati','ગુજરાતી'], 'ta-IN':['tamil','தமிழ்'], 'te-IN':['telugu','తెలుగు'],
+  'kn-IN':['kannada','ಕನ್ನಡ'], 'bn-IN':['bengali','bangla','বাংলা'] };
+const MENU_WORDS = [ // checked in this order
+  ['0', ['stop','unsubscribe',"don't call",'dont call','do not call']],
+  ['3', ['advisor','adviser','agent','human','person','executive','sales','सेल्स','एडवाइज़र','एडवाइजर','ॲडव्हायझर','സെയിൽസ്','അഡ്വൈസർ','સેલ્સ','એડવાઇઝર','சேல்ஸ்','அட்வைசர்','సేల్స్','అడ్వైజర్','ಸೇಲ್ಸ್','ಅಡ್ವೈಸರ್','সেলস','অ্যাডভাইজার']],
+  ['2', ['visit','site','विज़िट','विजिट','व्हिजिट','വിസിറ്റ്','વિઝિટ','விசிட்','విజిట్','ವಿಸಿಟ್','ভিজিট']],
+  ['4', ['later','call back','callback','बाद में','नंतर','പിന്നീട്','પછી','பிறகு','తర్వాత','ನಂತರ','পরে']],
+  ['1', ['talk','assistant','असिस्टेंट','असिस्टंट','അസിസ്റ്റന്റ്','આસિસ્ટન્ટ','அசிஸ்டன்ட்','అసిస్టెంట్','ಅಸಿಸ್ಟೆಂಟ್','অ্যাসিস্ট্যান্ট']],
+];
+function normDigits(s){
+  return s.replace(/[०-९০-৯੦-੯૦-૯୦-୯௦-௯౦-౯೦-೯൦-൯]/g,
+    ch => String(ch.charCodeAt(0) % 16 - 6)); // every Indic digit block starts at a code point ending in 6
+}
+function parseDigit(input){
+  if (input == null) return null;
+  if (input[0] === '#') return input.slice(1);
+  const t = normDigits(input).toLowerCase();
+  const m = t.match(/\d/); if (m) return m[0];
+  for (const tok of t.split(/[^\p{L}\p{M}\p{N}]+/u)) if (NUM_WORDS[tok] != null) return NUM_WORDS[tok];
+  return null;
+}
+function parseLangChoice(input){
+  const d = parseDigit(input);
+  if (d && d !== '0') return IVR_LANGS[+d - 1] || null;
+  if (input == null || input[0] === '#') return null;
+  const t = input.toLowerCase();
+  for (const [code, words] of Object.entries(LANG_WORDS)) if (words.some(w => t.includes(w))) return code;
+  return null;
+}
+function parseMenuChoice(input){
+  const d = parseDigit(input);
+  if (d != null) return '012349'.includes(d) ? d : null;
+  const t = (input || '').toLowerCase();
+  for (const [k, words] of MENU_WORDS) if (words.some(w => t.includes(w))) return k;
+  return null;
+}
+
+function ivrInput(timeoutMs){
+  return new Promise(resolve => {
+    let done = false;
+    const finish = v => { if (done) return; done = true; clearTimeout(timer); call.ivrResolve = null; stopListening(); resolve(v); };
+    const timer = setTimeout(() => finish(null), timeoutMs);
+    call.ivrResolve = finish;
+    if (call.ivrEarly != null){ const v = call.ivrEarly; call.ivrEarly = null; finish(v); }
+  });
+}
+async function ivrAsk(parts, timeoutMs){
+  call.ivrEarly = null;
+  const text = parts.map(p => p.text).join('\n');
+  bubble('agent ivr', text); call.transcript.push({ who:'agent', text:'[IVR] ' + text });
+  setStatus('speaking', 'IVR menu…');
+  await speakSeq(parts);
+  if (!call.active) return null;
+  // On a real call Twilio reports silence itself, after the menu has finished playing on the phone
+  const answer = ivrInput(call.line === 'twilio' ? 180000 : timeoutMs);
+  if (call.ivrResolve && !call.micBlocked) listen(); // callers can also say the option
+  if (call.ivrResolve) setStatus('listening', 'Waiting for keypress or voice…');
+  return answer;
+}
+async function ivrSay(text, lang){
+  bubble('agent ivr', text); call.transcript.push({ who:'agent', text:'[IVR] ' + text });
+  setStatus('speaking', 'IVR…');
+  await speak(text, lang);
+}
+
+async function runIvr(presetLang){
+  const c = ctx(), inbound = call.direction === 'inbound';
+  let lang = presetLang || null;
+  if (!lang){
+    call.phase = 'ivr_lang';
+    for (let tries = 0; tries < 2 && !lang; tries++){
+      const parts = IVR_LANGS.map(l => ({ text: IVR[l].pick, lang: l }));
+      if (tries === 0) parts.unshift({ text: inbound ? `Thank you for calling ${c.project}.` : `Hello! This is a call from ${c.company}.`, lang:'en-IN' });
+      const answer = await ivrAsk(parts, 9000);
+      if (!call.active) return;
+      lang = parseLangChoice(answer);
+      if (answer != null && !lang){ await ivrSay(IVR['en-IN'].invalid, 'en-IN'); if (!call.active) return; }
+    }
+    if (!lang){ lang = 'en-IN'; addSys('No language chosen: continuing in English'); }
+  }
+  setLang(lang);
+  addSys('Language: ' + langName(lang));
+  const tl = IVR[lang] ? lang : 'en-IN', T = IVR[tl];
+  if (inbound){ // callers go straight to the receptionist; returning callers are told how to change language
+    if (presetLang && IVR_STAR[tl]){ await ivrSay(IVR_STAR[tl], tl); if (!call.active) return; }
+    return startAgent(agentOpening());
+  }
+  call.phase = 'ivr_menu';
+  let choice = null, misses = 0;
+  for (let tries = 0; tries < 4 && choice == null; tries++){
+    const first = tries === 0 ? [T.hello, T.menu, ...(presetLang && IVR_STAR[tl] ? [IVR_STAR[tl]] : [])] : [T.menu];
+    const parts = first.map(t => ({ text: fill(t, c), lang: tl }));
+    const answer = await ivrAsk(parts, 9000);
+    if (!call.active) return;
+    if (answer == null){ if (++misses >= 2) break; continue; }
+    const d = parseMenuChoice(answer);
+    if (d === '9') continue; // repeat the menu
+    if (d == null){ await ivrSay(T.invalid, tl); if (!call.active) return; continue; }
+    choice = d;
+  }
+  if (choice == null){ await ivrSay(T.noInput, tl); return endCall('No option chosen in the IVR: call ended', 'no_response'); }
+  addSys('IVR choice: ' + { '1':'talk to assistant', '2':'book a site visit', '3':'speak to the sales team', '4':'call back later', '0':'stop calls' }[choice]);
+
+  if (choice === '1'){ call.intent = 'talk'; return startAgent('[IVR: the lead pressed 1 to talk to the assistant now. Greet them briefly (by name if known) and start helping.]'); }
+  if (choice === '2'){ call.intent = 'site_visit'; return startAgent('[IVR: the lead pressed 2 to book a site visit. Greet them briefly, then help them pick a day and time, ask how many people will come and whether they need pickup, and naturally capture their requirement, budget and timeline along the way.]'); }
+  if (choice === '3'){
+    await ivrSay(T.transfer, tl); if (!call.active) return;
+    const known = call.phone ? findCustomer(call.phone, call.projectId, call.line!=='twilio') : null;
+    const rep = known && member(known.repId)?.available ? member(known.repId) : pickRep({ projectId: call.projectId, language: lang })?.rep;
+    if (call.line === 'twilio'){
+      call.transferTo = rep?.phone || null;
+      if (!rep || isDummyNumber(rep.phone)){ await ivrSay(T.callbackDone, tl); addSys(`↪ ${rep ? rep.name + ' has a dummy number, so the call is not connected; they will call back' : 'No rep available'}.`); }
+      else addSys(`↪ Connecting the caller to ${rep.name}, ${rep.phone}`);
+    } else {
+      addSys(`↪ Transferring to ${rep ? `${rep.name}, ${rep.phone}` : 'the sales team'}. A real phone line would connect the call here; this one is simulated.`);
+      setStatus('thinking', 'On hold…'); await holdMusic(4000);
+    }
+    return endCall('Handed over to ' + (rep ? rep.name : 'the sales team'), 'transfer_requested');
+  }
+  if (choice === '4'){
+    call.phase = 'ivr_callback';
+    const when = await ivrAsk([{ text: T.callbackAsk, lang: tl }], 15000);
+    if (!call.active) return;
+    if (when && when[0] !== '#') call.lead.callback = when;
+    await ivrSay(T.callbackDone, tl);
+    return endCall('Callback requested' + (call.lead.callback ? ': ' + call.lead.callback : ''), 'callback_requested');
+  }
+  await ivrSay(T.dnc, tl);
+  return endCall('Lead opted out: added to the do-not-call list', 'do_not_call');
+}
+
+// ---------- AI brain (Groq / Claude) ----------
+// The instructions are short and identical on every turn of a call; the one thing that changes (the call
+// language) goes in a note after the conversation. Groq serves the unchanged part from its cache, and cached
+// tokens don't count against the free tier's 8,000 tokens a minute, so replies no longer queue behind that limit.
+const STYLES = {
+  casual: `Sound like a friendly Indian property sales executive on a real call, not a script or a translation. Use everyday spoken language with the English words people mix in (budget, location, visit, EMI, home loan), written in the call language's own script, never Latin letters (Hindi बजट, साइट विज़िट; Marathi बजेट; Malayalam ബജറ്റ്; Gujarati બજેટ). Avoid bookish words (कृपया, समय). Say amounts as spoken words in that language (Hindi पचहत्तर लाख). Open with a quick natural reaction (अच्छा जी, हो का, ശരി, સરસ, Got it), react to what they said, vary your wording, call them sir/ma'am or name-ji, and be brief when they are.`,
+  polite: `Warm, polite and professional. Natural spoken language with common English words where people use them. Briefly acknowledge each answer.`,
+  formal: `Formal and respectful: standard language with little code-mixing. Concise.`,
+};
+const SIGNAL_GUIDE = RUBRIC.map(r => `${r.key} ${r.levels.map(l => l[0]).join('|')}|unknown`).join('; ');
+function systemPrompt(){
+  const g = $('gender').value, p = currentProject(), inbound = call.direction === 'inbound', agent = $('agent').value;
+  const known = call.phone ? findCustomer(call.phone, p.id, call.line!=='twilio') : null, rep = known && member(known.repId);
+  const last4 = call.phone ? digits(call.phone).slice(-4) : '', notes = $('extraNotes').value.trim();
+  const opening = inbound
+    ? `First turn: thank them for calling ${p.name}, say you're ${agent}, an AI assistant, and ask how you can help.`
+    : call.intent
+      ? `They reached you through the IVR menu and already chose what they want: in your first turn say briefly you're ${agent}, an AI assistant from ${db.company}, and go straight to it.`
+      : `First turn: greet them, say you're ${agent}, an AI assistant from ${db.company}, mention their ${p.name} enquiry, and ask if it's a good time.`;
+  return `You are ${agent}, a ${g} AI phone agent for ${db.company}, selling ${p.name} in ${p.location}, India.
+${inbound
+  ? `INBOUND call: the caller rang the ${p.name} enquiry line. You are its receptionist: answer any question about the project from the data below, then learn their needs and offer a site visit.`
+  : `OUTBOUND call to a lead who enquired about ${p.name}.`}
+${known ? `Returning customer ${known.name || ''}, stage "${known.stage}"${rep ? `, relationship manager ${rep.name} (${rep.phone})` : ''}. Greet them by name. Already known: ${[known.requirement, known.budget && 'budget ' + known.budget].filter(Boolean).join(', ') || 'nothing yet'}.${known.personal ? ` Personal notes from earlier calls: ${known.personal}. Use them warmly (e.g. mention their office or their child's college).` : ''}` : ''}
+
+PROJECT DATA (live, and your ONLY facts: never invent prices, availability, offers, dates, approvals or rates; never offer a SOLD OUT home, suggest the nearest available one; if unsure, say the sales team will confirm):
+${projectKB(p)}
+${notes ? 'Sales team notes: ' + notes + '\n' : ''}
+THIS IS A REAL TWO-WAY CONVERSATION, NOT A SCRIPT. Follow the caller's lead:
+- Whenever they ask something, answer THAT first, directly and specifically (price, sizes, availability, EMI, loans, location, amenities, possession, charges, offers). Then, only if it flows, ask one natural follow-up.
+- Project facts come only from the project data. General questions (how home loans work, what RERA means, stamp duty in general, the neighbourhood) get a short general answer, without inventing anything about this project.
+- If they go off-topic, chat briefly like a person would, then steer back gently. If they don't answer a question, don't repeat it word for word: move on and come back later in a different way.
+- PERSONAL DETAILS matter. When they mention where they work, their child's school or college, family nearby, their commute, a worry or a wish, note it in lead.personal and use it right away, like a good salesperson: tell them how far that place is from the project and the usual travel time, from "Nearby places" in the project data (e.g. "Your office in Hinjewadi Phase 1 is just 6 km, about 15 minutes"). If the place is not listed, say that the distance has not been verified and offer to have their relationship manager confirm. Never invent a distance or travel time. Bring these details up again later when it helps (for example when fixing the site visit).
+- Along the way, learn: name, home type, preferred area, budget, self-use or investment, loan or own funds, when they'll buy, who else decides. Offer a site visit when they sound interested, within the visit timings, and fix a day and time (suggest bringing the co-decider). If the project clearly doesn't fit, say so honestly.
+HOW TO TALK: ${STYLES[$('style').value]}
+You are ${g}: use ${g === 'female' ? 'feminine' : 'masculine'} first-person forms (Hindi ${g === 'female' ? 'बोल रही हूँ' : 'बोल रहा हूँ'}, Marathi ${g === 'female' ? 'बोलतेय' : 'बोलतोय'}).
+Your words are spoken on a phone: short, natural sentences (2 when chatting, up to 3 when answering a question), one question at a time, no lists, emojis, brackets or symbols like ₹ or %.
+${opening}
+LANGUAGE: reply in the current call language (stated in the note after the conversation), in its own script (Latin only for English). If the caller asks for another language, or keeps speaking one, switch: write in it and put its code in "language". Codes: ${LANG_CODES.join(' ')}.
+WHATSAPP: before goodbye (unless they opted out), ${last4 ? `ask if this number, the one ending ${last4}, is on WhatsApp` : 'ask for their WhatsApp number'}, to send the brochure and their relationship manager's contact. whatsapp = "same" | the number they give | "no".
+Wants a person: say you're connecting them, outcome "transfer_requested", end_call true. Busy: ask a better time, put it in callback, close. Not interested or "don't call": apologise, confirm, close.
+End only when the caller is done: after the visit is booked or their questions are answered and they're qualified, confirm any visit, say their relationship manager will call and the details are coming on WhatsApp, say bye, end_call true. Never end while they still have a question.
+
+OUTPUT: only this JSON, "reply" first, as plain text. You have no tools or functions.
+{"reply":"…","language":"<code>","end_call":false,"lead":{"name":"","requirement":"","location":"","budget":"","purpose":"","financing":"","timeline":"","decision_maker":"","site_visit":"","whatsapp":"","callback":"","personal":"","summary":"","next_action":"","signals":{${RUBRIC.map(r => `"${r.key}":"unknown"`).join(',')}},"outcome":"in_progress"}}
+lead: everything known so far, short English phrases, "" if unknown; fill summary and next_action only in the final turn.
+signals: one level each, "unknown" unless the caller clearly said it; never guess (the app scores them). Levels: ${SIGNAL_GUIDE}. budget_fit compares their budget with the price of the home type they want (stretch = up to 15% short, or flexible); financing ready = own funds or loan sanctioned; authority joint_involved = co-decider involved, e.g. joining the visit; site_visit booked = a day and time agreed.
+outcome: in_progress, or when ending: ${MODEL_OUTCOMES.filter(o => o !== 'in_progress').join(', ')}.`;
+}
+const callState = () => `[Note: the current call language is ${langName($('lang').value)} (${$('lang').value}).]`;
+function applyLanguage(code){
+  if (LANG_CODES.includes(code) && code !== $('lang').value){ setLang(code); addSys('Switched to ' + langName(code)); }
+}
+
+async function aiTurn(userText, isStart){
+  const session=call.session;
+  call.busy = true; setStatus('thinking', 'Thinking…');
+  // Two lead turns in a row can happen after an error or a silence check-in: merge them so roles keep alternating.
+  const prev = call.messages[call.messages.length - 1];
+  if (prev && prev.role === 'user') prev.content += '\n' + userText; else call.messages.push({ role:'user', content:userText });
+  const turn = call.turn = (call.turn || 0) + 1;
+  const leadSpoke = () => call.transcript.some(t => t.who === 'lead' && !t.text.startsWith('[pressed'));
+  // Speak as soon as the reply text has streamed in. The lead record for the scorecard arrives a moment later.
+  let early = false;
+  const onEarly = e => {
+    if (early || !call.active || turn !== call.turn || (e.end_call && leadSpoke())) return; // a goodbye waits for the full record
+    early = true;
+    call.messages.push({ role:'assistant', content: e.reply });
+    applyLanguage(e.language);
+    call.busy = false;
+    agentSay(e.reply, false);
+  };
+  try {
+    const out = await withRetry(() => $('mode').value === 'groq' ? groqCall({ onEarly }) : claudeCall());
+    if(session!==call.session)return;
+    if (!call.active){ call.busy = false; return; }
+    call.fails = 0;
+    if (turn !== call.turn){if(out.lead){call.lead=mergeLeadRecord(call.lead,out.lead,true);renderLead(call.lead);}return;}
+    // Never hang up before the lead has said anything; models sometimes set end_call on the greeting.
+    if (out.end_call && !leadSpoke()) out.end_call = false;
+    if (out.lead){ // a reply salvaged from broken JSON has no record: keep what the scorecard already knows
+      call.lead = mergeLeadRecord(call.lead,out.lead);
+      renderLead(call.lead);
+    }
+    if (early) return;
+    call.messages.push({ role:'assistant', content: out.reply });
+    applyLanguage(out.language);
+    call.busy = false;
+    await agentSay(out.reply, out.end_call);
+  } catch (err) {
+    if (session!==call.session || turn !== call.turn || !call.active) return;
+    if (early) return; // already answered; only the scorecard update failed
+    call.busy = false;
+    if (isStart){ addSys('⚠ ' + err.message); call.messages.pop(); return endCall('Call failed to start', 'failed'); }
+    if (!call.active) return;
+    const lang = $('lang').value;
+    if (err.status === 429 || /rate limit/i.test(err.message)){
+      // Every model is at Groq's limit for now. Say "one moment" (not "I didn't catch that": the caller was heard fine),
+      // hold the line, and answer the same question as soon as Groq allows, without making them repeat it.
+      addSys('⚠ Groq free limit reached on every model. Holding the line: ' + err.message.replace(/ in organization `[^`]*`/, '').slice(0, 140));
+      const hold = HOLD_ON[lang] || HOLD_ON['en-IN'], myTurn = call.turn;
+      call.transcript.push({ who:'agent', text: hold }); bubble('agent', hold);
+      await speak(hold, lang);
+      if (call.line === 'twilio') phoneHold();
+      setTimeout(() => { if (call.active && !call.busy && call.turn === myTurn) aiTurn('[Now answer the caller\'s last message.]'); },
+        Math.min(45, Math.max(3, err.waitSecs || 8)) * 1000);
+      return;
+    }
+    addSys('⚠ ' + err.message);
+    // Two failures in a row on the same model: rest it for two minutes so the next turn uses another one
+    call.fails = (call.fails || 0) + 1;
+    if (call.fails >= 2 && $('mode').value === 'groq'){ groqResting[pickGroqModel()] = Date.now() + 120000; call.fails = 0; }
+    // Never go silent: apologise like a person would, keep the lead's words in history,
+    // and keep listening. The next thing they say retries the turn.
+    await agentSay(SAY_AGAIN[lang] || SAY_AGAIN['en-IN'], false);
+  }
+}
+const HOLD_ON = {
+  'en-IN':'One moment please, let me check that for you.', 'hi-IN':'एक मिनट, अभी चेक करके बताते हैं।',
+  'mr-IN':'एक मिनिट, जरा तपासून पाहू या.', 'ml-IN':'ഒരു നിമിഷം, നോക്കിയിട്ട് പറയാം.',
+  'gu-IN':'એક મિનિટ, તપાસીને કહું છું.', 'ta-IN':'ஒரு நிமிஷம், பார்த்துச் சொல்கிறேன்.',
+  'te-IN':'ఒక్క నిమిషం, చూసి చెప్తాను.', 'kn-IN':'ಒಂದು ನಿಮಿಷ, ನೋಡಿ ಹೇಳ್ತೀನಿ.', 'bn-IN':'এক মিনিট, দেখে বলছি।',
+};
+const SAY_AGAIN = {
+  'en-IN':"Sorry, I didn't quite catch that. Could you say it once more?", 'hi-IN':'माफ़ कीजिए, ठीक से सुनाई नहीं दिया। एक बार फिर से बोलेंगे?',
+  'mr-IN':'माफ करा, नीट ऐकू आलं नाही. पुन्हा एकदा सांगाल का?', 'ml-IN':'ക്ഷമിക്കണം, ശരിക്ക് കേട്ടില്ല. ഒന്നുകൂടി പറയാമോ?',
+  'gu-IN':'માફ કરશો, બરાબર સંભળાયું નહીં. ફરી એક વાર કહેશો?', 'ta-IN':'மன்னிக்கவும், சரியாகக் கேட்கவில்லை. இன்னொரு முறை சொல்ல முடியுமா?',
+  'te-IN':'క్షమించండి, సరిగ్గా వినిపించలేదు. ఇంకోసారి చెప్తారా?', 'kn-IN':'ಕ್ಷಮಿಸಿ, ಸರಿಯಾಗಿ ಕೇಳಿಸಲಿಲ್ಲ. ಇನ್ನೊಮ್ಮೆ ಹೇಳ್ತೀರಾ?',
+  'bn-IN':'দুঃখিত, ঠিক শুনতে পাইনি। আরেকবার বলবেন?', 'pa-IN':'ਮਾਫ਼ ਕਰਨਾ, ਠੀਕ ਤਰ੍ਹਾਂ ਸੁਣਿਆ ਨਹੀਂ। ਇੱਕ ਵਾਰ ਫਿਰ ਦੱਸੋਗੇ?',
+  'or-IN':'କ୍ଷମା କରିବେ, ଠିକ୍ ଶୁଣିପାରିଲି ନାହିଁ। ଆଉ ଥରେ କହିବେ କି?', 'as-IN':'ক্ষমা কৰিব, ভালদৰে শুনা নগ\'ল। আৰু এবাৰ ক\'বনে?',
+  'ur-IN':'معاف کیجیے، ٹھیک سے سنائی نہیں دیا۔ ایک بار پھر بتائیں گے؟',
+};
+
+// Groq's free tier limits requests and tokens per minute. Wait and retry instead of dropping the call.
+async function withRetry(fn){
+  for (let attempt = 1; ; attempt++){
+    try { return await fn(); }
+    catch (err){
+      const limited = err.status === 429 || err.status === 413 || err.status >= 500 || /rate limit|try again|overloaded|too many/i.test(err.message);
+      const secs = Math.max(1, err.waitSecs || err.retryAfter || attempt * 2);
+      // Only short waits are worth sitting through on a live call; longer ones go to the "one moment" hold instead
+      if (!limited || attempt >= 2 || secs > 6 || (!call.active && !err.testing)) throw err; // one quick retry at most
+      setStatus('thinking', `Busy line, retrying in ${Math.ceil(secs)} s…`);
+      await sleep(secs * 1000 + 200);
+      setStatus('thinking', 'Thinking…');
+    }
+  }
+}
+function apiError(res, data){
+  const e = new Error(data?.error?.message || ('HTTP ' + res.status));
+  e.status = res.status; e.retryAfter = parseFloat(res.headers?.get?.('retry-after')) || 0;
+  return e;
+}
+
+// Groq: the answer is streamed, and speaking starts as soon as "reply", "language" and "end_call" have arrived.
+// gpt-oss models sometimes try to "call a tool" even though there are none, and Groq rejects that turn with
+// "Tool choice is none, but model called a tool". Then we 1) recover the answer from the rejected output,
+// 2) retry once in JSON mode with a firmer reminder, 3) answer this turn with another model on the account.
+const isToolError = (msg, data) => /tool choice is none|called a tool|tool_use_failed|failed_generation|parse tool call/i.test(msg + ' ' + (data?.error?.code || ''));
+function extractAnswer(text){
+  const match = String(text || '').match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  let obj; try { obj = JSON.parse(match[0]); } catch(e){ return null; }
+  if (obj && typeof obj.reply !== 'string'){ // the answer wrapped as tool arguments
+    let args = obj.arguments ?? obj.parameters ?? obj.input;
+    if (typeof args === 'string'){ try { args = JSON.parse(args); } catch(e){ args = null; } }
+    obj = args;
+  }
+  if (!obj || typeof obj.reply !== 'string' || !obj.reply.trim()) return null;
+  return { reply: obj.reply.trim(), language: obj.language, end_call: obj.end_call === true, lead: obj.lead };
+}
+// Last resort for broken JSON: pull out just the spoken reply (and language / end_call if present).
+// lead is null, so the scorecard keeps what it already knows instead of being wiped.
+function salvageReply(text){
+  const m = String(text || '').match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  if (!m) return null;
+  let reply; try { reply = JSON.parse('"' + m[1] + '"').trim(); } catch(e){ return null; }
+  if (!reply) return null;
+  const lang = (String(text).match(/"language"\s*:\s*"([a-z]{2}-[A-Z]{2})"/) || [])[1];
+  return { reply, language: lang, end_call: /"end_call"\s*:\s*true/.test(text), lead: null };
+}
+function earlyAnswer(text){
+  const m = text.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"language"\s*:\s*"([a-z]{2}-[A-Z]{2})"\s*,\s*"end_call"\s*:\s*(true|false)/);
+  if (!m) return null;
+  try { const reply = JSON.parse('"' + m[1] + '"').trim(); return reply ? { reply, language: m[2], end_call: m[3] === 'true' } : null; } catch(e){ return null; }
+}
+function fallbackGroqModel(current){
+  // Prefer a model of a different family (the stuck habit is gpt-oss's); otherwise any other model on the account
+  const now = Date.now(), ids = [...$('groqModel').options].map(o => o.value).filter(v => v && v !== current && !(groqResting[v] > now));
+  const rank = id => (/gpt-oss/.test(id) ? 100 : 0) + (i => i < 0 ? 99 : i)(GROQ_PREFERRED.findIndex(p => id.includes(p)));
+  return ids.sort((a, b) => rank(a) - rank(b))[0] || null;
+}
+// Long calls: send only the recent turns, plus a short note of everything learned so far, so a request never
+// outgrows the model or the free tier's per-request size. The instructions stay first and unchanged (cached).
+function groqMessages(extra = '', keep = call.historyKeep || 16){
+  let history = call.messages;
+  let note = callState();
+  if (history.length > keep){
+    history = history.slice(-keep);
+    while (history.length && history[0].role !== 'user') history = history.slice(1);
+    const L = call.lead || {}, known = LEAD_FIELDS.map(([k, label]) => L[k] && !['summary','next_action'].includes(k) ? `${label}: ${L[k]}` : '').filter(Boolean).join('; ');
+    note += ` [Earlier in this call (older turns not shown): ${known || 'nothing recorded yet'}.]`;
+  }
+  return [ { role:'system', content: systemPrompt() + extra }, ...history, { role:'system', content: note } ];
+}
+const approxTokens = msgs => Math.ceil(JSON.stringify(msgs).length / 2.5); // Indian scripts use more tokens per character
+
+// Diagnostics: every AI reply attempt (model, timing, tokens, cache use, errors), shown in the Tests tab
+function logDiag(entry){
+  try { const a = JSON.parse(store.get('lq.diag') || '[]'); a.unshift({ at: new Date().toISOString(), ...entry }); store.set('lq.diag', JSON.stringify(a.slice(0, 200))); } catch(e){}
+}
+// Groq's free tier limits each model per minute AND per day. A model that hits its limit rests until Groq
+// says it may be used again, and the next model on the account takes over, so a call never stalls on it.
+var groqResting = {}; // model -> time it may be used again
+function pickGroqModel(){
+  const chosen = $('groqModel').value, now = Date.now();
+  if (chosen && !(groqResting[chosen] > now)) return chosen;
+  const rank = id => { const i = GROQ_PREFERRED.findIndex(p => id.includes(p)); return i < 0 ? 99 : i; };
+  const free = [...$('groqModel').options].map(o => o.value).filter(v => v && !(groqResting[v] > now)).sort((a, b) => rank(a) - rank(b));
+  return free[0] || chosen;
+}
+function groqWaitSeconds(msg, headers){
+  const h = parseFloat(headers?.get?.('retry-after')); if (h) return h;
+  const m = String(msg || '').match(/try again in ((\d+)h)?((\d+)m)?(([\d.]+)s)?/i);
+  return m ? (+(m[2] || 0)) * 3600 + (+(m[4] || 0)) * 60 + (+(m[6] || 0)) : 0;
+}
+async function groqCall({ model = pickGroqModel(), retry = 0, onEarly = null, messages = null, key = $('groqKey').value.trim(), noJson = false, switched = 0, trimmed = false } = {}){
+  const ctx = { model, retry, onEarly, messages, key, noJson, switched, trimmed };
+  const msgs = messages || groqMessages(retry ? '\nIMPORTANT: your last attempt tried to call a tool or was cut off. There are no tools: write the JSON as plain text.' : '');
+  const stream = !!onEarly && retry === 0;
+  // Generous room: long answers to off-script questions plus the model's own thinking must fit without being cut off
+  // Room for the answer: generous, but never more than the model or the free tier's 8,000-token request size allows
+  const est = approxTokens(msgs), info = groqInfo[model] || {};
+  let room = retry ? 2500 : 1800;
+  if (info.maxOut) room = Math.min(room, info.maxOut);
+  if (info.ctx) room = Math.min(room, info.ctx - est - 256);
+  room = Math.max(500, Math.min(room, 7800 - est));
+  const body = { model, messages: msgs, temperature: $('style').value === 'casual' ? 0.75 : 0.4, max_tokens: room };
+  if (/gpt-oss/.test(model)) body.reasoning_effort = 'low'; // keep voice replies fast
+  if (stream) body.stream = true; else if (!noJson) body.response_format = { type:'json_object' };
+  const t0 = performance.now(); let firstMs = null;
+  const early = onEarly && (e => { firstMs = Math.round(performance.now() - t0); onEarly(e); });
+  let res;
+  try { res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method:'POST', headers:{ 'content-type':'application/json', authorization:'Bearer ' + key }, body: JSON.stringify(body), signal:AbortSignal.timeout(15000) }); }
+  catch (e){ logDiag({ model, ok:false, err:'no connection to Groq: ' + e.message }); throw e; }
+  if (!res.ok){
+    const data = await res.json().catch(() => ({}));
+    logDiag({ model, ok:false, status: res.status, ms: Math.round(performance.now() - t0), err: data?.error?.message || 'HTTP ' + res.status });
+    return groqFailure(res.status, res.headers, data, ctx);
+  }
+  let text, usage = null;
+  if (stream){
+    const r = await readGroqStream(res, early);
+    if (r.error){ logDiag({ model, ok:false, stream, err: r.error.message }); return groqFailure(400, null, { error: r.error }, ctx); }
+    text = r.text; usage = r.usage;
+  } else { const j = await res.json(); text = j.choices?.[0]?.message?.content || ''; usage = j.usage; }
+  const out = extractAnswer(text) || (retry ? salvageReply(text) : null);
+  logDiag({ model, ok: !!out, stream, ms: Math.round(performance.now() - t0), firstMs, tokensIn: usage?.prompt_tokens,
+    cached: usage?.prompt_tokens_details?.cached_tokens, tokensOut: usage?.completion_tokens,
+    reply: out ? out.reply.slice(0, 90) : undefined, err: out ? undefined : 'unusable answer: ' + String(text).slice(0, 160) });
+  if (out) return out;
+  if (retry === 0) return groqCall({ ...ctx, retry: 1 });
+  throw new Error('The model did not return a usable answer. Try again or pick another model.');
+}
+async function readGroqStream(res, onEarly){
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let buf = '', text = '', fired = false, usage = null;
+  for (;;){
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream:true });
+    let i;
+    while ((i = buf.indexOf('\n')) >= 0){
+      const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+      if (!line.startsWith('data:')) continue;
+      const d = line.slice(5).trim(); if (!d || d === '[DONE]') continue;
+      let j; try { j = JSON.parse(d); } catch(e){ continue; }
+      if (j.error) return { error: j.error, text };
+      usage = j.x_groq?.usage || j.usage || usage;
+      text += j.choices?.[0]?.delta?.content || '';
+      if (!fired){ const e = earlyAnswer(text); if (e){ fired = true; try { onEarly(e); } catch(err){ console.error(err); } } }
+    }
+  }
+  return { text, usage };
+}
+function groqFailure(status, headers, data, ctx){
+  const msg = data?.error?.message || ('HTTP ' + status);
+  // "Failed to generate JSON": the model wrote slightly broken JSON. The spoken reply is almost always intact,
+  // so use it; otherwise try again without Groq's strict JSON mode.
+  if (/failed to generate json|json_validate/i.test(msg + ' ' + (data?.error?.code || ''))){
+    const fg = data?.error?.failed_generation;
+    const rec = extractAnswer(fg) || salvageReply(fg);
+    if (rec) return rec;
+    if (!ctx.noJson) return groqCall({ ...ctx, noJson: true });
+  }
+  // "Please reduce the length of the messages or completion" / "Request too large": send less and, if needed, use a bigger model
+  if (status === 413 || /reduce the length|context.length|context_length|too large|reduce your message/i.test(msg + ' ' + (data?.error?.code || ''))){
+    if (!ctx.trimmed){
+      if (!ctx.messages) call.historyKeep = 6; // stay short for the rest of this call
+      const shorter = groqMessages(ctx.retry ? '\nIMPORTANT: write the JSON as plain text.' : '', 6);
+      if (!ctx.messages) addSys(`The conversation got too long for ${ctx.model}; sending only the recent part.`);
+      return groqCall({ ...ctx, messages: ctx.messages || shorter, trimmed: true, retry: Math.max(ctx.retry, 0) });
+    }
+    groqResting[ctx.model] = Date.now() + 24 * 3600e3; // too small for this job: don't use it again today
+    const alt = pickGroqModel();
+    if (alt && alt !== ctx.model){ if (!ctx.messages) addSys(`${ctx.model} is too small for this call, so ${alt} is answering.`); return groqCall({ ...ctx, model: alt, retry: 0 }); }
+  }
+  if (status === 429){
+    const secs = groqWaitSeconds(msg, headers), daily = /per day|TPD|RPD/i.test(msg);
+    if (daily || secs > 6){ // a long wait: rest this model and carry on with another one
+      groqResting[ctx.model] = Date.now() + (secs || 60) * 1000;
+      const alt = pickGroqModel();
+      if (alt && alt !== ctx.model && (ctx.switched || 0) < 3){
+        if (!ctx.messages) addSys(`${ctx.model} reached Groq's free ${daily ? 'daily' : 'per-minute'} limit, so ${alt} is answering for now.`);
+        return groqCall({ ...ctx, model: alt, retry: 0, switched: (ctx.switched || 0) + 1 });
+      }
+    }
+  }
+  if (isToolError(msg, data)){
+    const recovered = extractAnswer(data?.error?.failed_generation);
+    if (recovered) return recovered;
+    if (ctx.retry === 0) return groqCall({ ...ctx, retry: 1 });
+    const alt = ctx.retry === 1 && fallbackGroqModel(ctx.model);
+    if (alt){ if (!ctx.messages) addSys(`${ctx.model} got stuck on this reply, so ${alt} answered it.`); return groqCall({ ...ctx, model: alt, retry: 2 }); }
+  }
+  if (!ctx.noJson && /response_format|json_validate|json mode/i.test(msg)) return groqCall({ ...ctx, noJson: true }); // model without JSON mode
+  if (/does not exist|decommissioned|not have access/i.test(msg)) loadGroqModels();
+  const err = apiError({ status, headers }, data);
+  if (status === 429) err.waitSecs = groqWaitSeconds(msg, headers);
+  throw err;
+}
+
+async function claudeCall(){
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key': $('apiKey').value.trim(),
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true',
+      'anthropic-beta':'server-side-fallback-2026-07-01',
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 4000,
+      system: systemPrompt() + '\n\n' + callState(),
+      messages: call.messages,
+      output_config: { effort:'low', format:{ type:'json_schema', schema: LEAD_SCHEMA } },
+      fallbacks: 'default',
+    })
+  });
+  const data = await res.json();
+  if (!res.ok) throw apiError(res, data);
+  if (data.stop_reason === 'refusal') throw new Error('The model declined this turn. Try rephrasing.');
+  if (data.stop_reason === 'max_tokens') throw new Error('Response was cut off (max_tokens).');
+  return JSON.parse(data.content.find(b => b.type === 'text').text);
+}
+
+// ---------- Scripted demo brain (no API) ----------
+const SCRIPT = {
+  'en-IN': {
+    known: c => `Hello ${c.name}! I'm ${c.agent}, an AI assistant from ${c.company}, calling about your enquiry for ${c.project}. What kind of home are you looking for: a 2 BHK, a 3 BHK, or something else?`,
+    q:[ c => `Hello! I'm ${c.agent}, an AI assistant calling from ${c.company} about your enquiry for ${c.project}. May I know your name, please?`,
+        c => `Nice to meet you, ${c.name}. What kind of home are you looking for: a 2 BHK, a 3 BHK, or something else?`,
+        c => `Got it. Roughly what budget do you have in mind?`,
+        c => `Will you be taking a home loan, or buying with your own funds?`,
+        c => `And will you be deciding on this yourself, or together with family?`,
+        c => `When are you planning to buy: in the next month or two, within six months, or later?`,
+        c => `Would you like to visit ${c.project} in ${c.location}? Which day and time would suit you?`,
+        c => c.last4 ? `Is this number, the one ending in ${c.last4}, on WhatsApp? I'll send you the brochure and your relationship manager's details there.` : `What's your WhatsApp number? I'll send you the brochure and your relationship manager's details there.`,
+        c => `Thank you so much, ${c.name}! The brochure and your relationship manager's number are coming on WhatsApp now. Have a great day!` ] },
+  'hi-IN': {
+    known: c => `नमस्ते ${c.name} जी! मैं ${c.agent}, ${c.company} ${c.f ? 'की' : 'का'} AI असिस्टेंट, ${c.project} के बारे में आपकी इन्क्वायरी पर कॉल कर ${c.f ? 'रही' : 'रहा'} हूँ। आप किस तरह का घर देख रहे हैं: 2 BHK, 3 BHK, या कुछ और?`,
+    q:[ c => `नमस्ते! मैं ${c.agent}, ${c.company} ${c.f ? 'की' : 'का'} AI असिस्टेंट, ${c.project} के बारे में आपकी इन्क्वायरी पर कॉल कर ${c.f ? 'रही' : 'रहा'} हूँ। आपका नाम जान ${c.f ? 'सकती' : 'सकता'} हूँ?`,
+        c => `आपसे बात करके अच्छा लगा, ${c.name} जी। आप किस तरह का घर देख रहे हैं: 2 BHK, 3 BHK, या कुछ और?`,
+        c => `ठीक है। आपका बजट लगभग कितना है?`,
+        c => `आप होम लोन लेंगे, या अपने फ़ंड से ख़रीदेंगे?`,
+        c => `यह फ़ैसला आप ख़ुद लेंगे, या फ़ैमिली के साथ मिलकर?`,
+        c => `आप कब तक ख़रीदना चाहते हैं: अगले एक-दो महीने में, छह महीने में, या बाद में?`,
+        c => `क्या आप ${c.location} में ${c.project} की साइट विज़िट करना चाहेंगे? कौन-सा दिन और टाइम आपके लिए ठीक रहेगा?`,
+        c => c.last4 ? `क्या ${c.last4} पर ख़त्म होने वाला यह नंबर व्हाट्सऐप पर है? मैं वहाँ ब्रोशर और आपके रिलेशनशिप मैनेजर की डिटेल्स भेज ${c.f ? 'दूँगी' : 'दूँगा'}।` : `आपका व्हाट्सऐप नंबर क्या है? मैं वहाँ ब्रोशर और आपके रिलेशनशिप मैनेजर की डिटेल्स भेज ${c.f ? 'दूँगी' : 'दूँगा'}।`,
+        c => `बहुत-बहुत धन्यवाद ${c.name} जी! ब्रोशर और आपके रिलेशनशिप मैनेजर का नंबर अभी व्हाट्सऐप पर आ रहा है। आपका दिन शुभ हो!` ] },
+};
+const FIELDS = ['name','requirement','budget','financing','decision_maker','timeline','site_visit','whatsapp'];
+
+function scriptTurn(answer){
+  const S = SCRIPT[$('lang').value] || SCRIPT['en-IN'], L = call.lead;
+  if (answer !== null){
+    const f = FIELDS[call.step - 1];
+    L[f] = f === 'name' ? cleanName(answer) : f === 'whatsapp' ? scriptWhatsApp(answer) : answer;
+    L.signals = scriptSignals(L);
+    Object.assign(L, computeScore(L));
+    L.summary = [L.requirement, L.budget && 'budget ' + L.budget].filter(Boolean).join(' · ');
+    L.next_action = nextAction(L);
+    renderLead(L);
+  }
+  const c = ctx();
+  if (call.step === 0 && L.name){ call.step = 2; return agentSay(S.known(c), false); } // name already known from the contact
+  const q = S.q[call.step]; call.step++;
+  const last = call.step >= S.q.length;
+  if (last) L.outcome = L.signals?.site_visit === 'booked' ? 'visit_booked' : 'qualified';
+  agentSay(q(c), last);
+}
+function cleanName(s){
+  return s.replace(/^(my name is|i am|i'm|this is|मेरा नाम|मैं)\s*/i,'').replace(/\s*(है|हूँ|हूं)\.?$/,'').replace(/[.।!]/g,'').trim().split(/\s+/).slice(0,3).join(' ');
+}
+function scriptWhatsApp(a){
+  const n = normPhone(a); if (n) return n;
+  if (/^\s*(no|nahi|नहीं|नही)/i.test(a)) return 'no';
+  return /yes|haan|ha\b|हाँ|हां|same|ज़रूर|जरूर|sure/i.test(a) ? 'same' : '';
+}
+// Amounts like "75 lakh", "1.2 crore", "1.1 करोड़" → lakh
+function amountsInLakh(text){
+  return [...String(text).toLowerCase().replace(/,/g,'').matchAll(/(\d+(?:\.\d+)?)\s*(crore|cr\b|करोड़|करोड|lakh|lac|लाख)/g)]
+    .map(m => +m[1] * (/cr|करोड/.test(m[2]) ? 100 : 1));
+}
+// Keyword rules the scripted demo uses to turn answers into the same signals the AI reports
+function scriptSignals(L){
+  const s = {}, p = currentProject(), avail = p.inventory.filter(u => +u.available > 0);
+  const req = L.requirement || '', want = [...req.matchAll(/(\d(?:\.\d)?)\s*bhk/gi)].map(m => m[1]);
+  const wanted = avail.filter(u => want.some(w => u.config.toLowerCase().startsWith(w + ' bhk')));
+  const budget = amountsInLakh(L.budget || ''), prices = (wanted.length ? wanted : avail).map(u => +u.priceFrom);
+  if (budget.length && prices.length){
+    const b = Math.max(...budget), min = Math.min(...prices);
+    s.budget_fit = b >= min ? 'fits' : b >= 0.85 * min ? 'stretch' : 'no';
+  }
+  const t = L.timeline || '';
+  if (t) s.timeline = /year|later|not sure|don't know|exploring|साल|बाद में|पता नहीं/i.test(t) ? 'over_6m'
+    : /six|6|छह|छः/i.test(t) ? '3_to_6m'
+    : /month|week|now|asap|immediately|soon|महीने|हफ्ते|हफ़्ते|अभी|तुरंत|जल्दी/i.test(t) ? 'within_3m' : '3_to_6m';
+  const fin = L.financing || '';
+  if (/own|cash|savings|approved|sanction|अपने|ख़ुद|खुद|कैश|मंज़ूर|सैंक्शन/i.test(fin)) s.financing = 'ready';
+  else if (/loan|लोन/i.test(fin)) s.financing = 'loan_needed';
+  const dm = L.decision_maker || '';
+  if (/together|with (my )?(wife|husband|family|parents)|मिलकर|साथ/i.test(dm)) s.authority = 'joint_involved';
+  else if (/family|wife|husband|parents|father|mother|partner|ask|परिवार|फ़ैमिली|फैमिली|पत्नी|पति|माता|पिता|पूछ/i.test(dm)) s.authority = 'joint_absent';
+  else if (/myself|me|alone|i will|i decide|मैं|ख़ुद|खुद|अकेले/i.test(dm)) s.authority = 'self';
+  if (req){
+    if (wanted.length) s.requirement_match = 'match';
+    else if (want.length || /villa|plot|विला|प्लॉट/i.test(req)) s.requirement_match = 'no';
+    else s.requirement_match = 'partial';
+  }
+  const v = L.site_visit || '';
+  if (v) s.site_visit = /^\s*(no|not|nahi|नहीं)/i.test(v) ? 'declined'
+    : /monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend|tomorrow|today|\d|am\b|pm\b|सोमवार|मंगलवार|बुधवार|गुरुवार|शुक्रवार|शनिवार|रविवार|कल|आज|बजे|सुबह|शाम/i.test(v) ? 'booked' : 'interested';
+  return s;
+}
+
+// ---------- Contacts & auto-dial ----------
+function getContacts(){ try{ return JSON.parse(store.get('lq.contacts') || '[]'); }catch(e){ return []; } }
+function saveContacts(list){ store.set('lq.contacts', JSON.stringify(list)); renderContacts(); }
+const STATE_LABEL = { queued:'Queued', calling:'On call', done:'Done', callback:'Callback', dnc:'Do not call', no_response:'No response', failed:'Failed' };
+let contactPage=0;
+function renderContacts(){
+  const tb = $('contacts'); tb.innerHTML = '';
+  const list = getContacts();
+  contactPage=Math.min(contactPage,Math.max(0,Math.ceil(list.length/100)-1));
+  renderPager('contactPager','contacts',list.length,contactPage,p=>{contactPage=p;renderContacts();});
+  if (!list.length){ tb.innerHTML = '<tr><td colspan="7" class="hint">No contacts yet.</td></tr>'; return; }
+  list.slice(contactPage*100,(contactPage+1)*100).forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td></td><td></td><td></td><td></td><td><span class="pill"></span></td><td></td><td></td>';
+    tr.children[0].textContent = c.name; tr.children[1].textContent = c.phone;
+    tr.children[2].textContent = (project(c.projectId)?.name || '–').replace(/^Raghav /, '');
+    tr.children[3].textContent = c.lang === 'auto' ? 'IVR' : c.lang.split('-')[0].toUpperCase();
+    const pill = tr.querySelector('.pill'); pill.textContent = STATE_LABEL[c.state] || c.state; pill.classList.add(c.state);
+    tr.children[5].innerHTML = c.score != null ? `<span class="badge ${c.status || ''}">${c.score}</span>` : '–';
+    const dialBtn = document.createElement('button'); dialBtn.className = 'small dial-btn'; dialBtn.textContent = '📞'; dialBtn.title = 'Call now';
+    dialBtn.disabled = call.active || c.state === 'dnc'; dialBtn.onclick = () => dialContact(c.id);
+    const delBtn = document.createElement('button'); delBtn.className = 'small'; delBtn.textContent = '✕'; delBtn.title = 'Remove';
+    delBtn.onclick = () => { if (c.state !== 'calling') saveContacts(getContacts().filter(x => x.id !== c.id)); };
+    tr.children[6].append(dialBtn, ' ', delBtn);
+    tb.appendChild(tr);
+  });
+}
+function addContact(callNow){
+  const name = $('cName').value.trim(), phone = normPhone($('cPhone').value);
+  if (!name || !phone) return alert('Enter a name and a valid mobile number (10 digits starting with 6-9, or +country code).');
+  if (!$('cConsent').checked) return alert('Only call people who enquired or agreed to be contacted. Tick the box to confirm.');
+  const list = getContacts(), projectId = $('cProject').value;
+  let c = list.find(x => x.phone === phone && x.projectId === projectId);
+  if (c && c.state === 'dnc' || db.customers.some(x => samePhone(x.phone, phone) && x.stage === 'Opted out'))
+    return alert(`${name} asked not to be called again. Not dialing.`);
+  if (c) Object.assign(c, { name, lang: $('cLang').value, state: c.state === 'calling' ? 'calling' : 'queued' });
+  else { c = { id: uid(), name, phone, projectId, lang: $('cLang').value, state:'queued' }; list.push(c); }
+  saveContacts(list);
+  $('cName').value = ''; $('cPhone').value = ''; $('cConsent').checked = false;
+  if (!callNow) return;
+  if (call.active) addSys(`${name} added to the queue. Dialing after this call.`);
+  else dialContact(c.id);
+}
+$('contactForm').onsubmit = e => { e.preventDefault(); addContact(true); };
+$('addQueue').onclick = () => addContact(false);
+$('autoDial').addEventListener('change', () => { if ($('autoDial').checked && !call.active) dialNextQueued(); });
+
+async function dialContact(id){
+  if (call.active) return;
+  const list = getContacts(), c = list.find(x => x.id === id);
+  if (!c || c.state === 'dnc') return;
+  if (!project(c.projectId)) c.projectId = $('campProject').value;
+  c.state = 'calling'; saveContacts(list);
+  if (c.lang !== 'auto') setLang(c.lang);
+  if (db.settings.twilio.line === 'twilio'){ // real call: Twilio dials, the call starts when they answer
+    if (!(await twilioDial(c))){ const l2 = getContacts(), c2 = l2.find(x => x.id === id); if (c2){ c2.state = 'queued'; saveContacts(l2); } }
+    return;
+  }
+  const started = await startCall({ contact: c });
+  if (!started){ const l2 = getContacts(), c2 = l2.find(x => x.id === id); if (c2){ c2.state = 'queued'; saveContacts(l2); } }
+}
+function finishContact(id, lead){
+  const list = getContacts(), c = list.find(x => x.id === id); if (!c) return;
+  c.state = { do_not_call:'dnc', no_response:'no_response', callback_requested:'callback', failed:'failed' }[lead.outcome] || 'done';
+  Object.assign(c, { score: lead.score, status: lead.status, outcome: lead.outcome, lastCall: new Date().toISOString() });
+  saveContacts(list);
+}
+function dialNextQueued(){
+  const next = getContacts().find(c => c.state === 'queued');
+  if (next) dialContact(next.id); else addSys('Queue finished: no more contacts to dial.');
+}
+function scheduleNextDial(){
+  if (!$('autoDial').checked || !getContacts().some(c => c.state === 'queued')) return;
+  addSys('Next contact in 5 seconds…');
+  setTimeout(() => { if (!call.active && $('autoDial').checked) dialNextQueued(); }, 5000);
+}
+renderContacts();
+
+// ---------- Call log ----------
+function getLeads(){ try{ return JSON.parse(store.get('lq.leads') || '[]'); }catch(e){ return []; } }
+function saveLead(){
+  const leads = getLeads();
+  leads.unshift({ ...call.lead, breakdown: undefined, projectId:call.projectId, simulated:call.line!=='twilio', sid:call.sid, attemptId:call.attemptId, project: currentProject()?.name, direction: call.direction, language: $('lang').value, when: new Date().toISOString(), transcript: call.transcript });
+  store.set('lq.leads', JSON.stringify(leads)); renderLeads();
+}
+function renderLeads(){
+  const box = $('leads'); box.innerHTML = '';
+  const leads = getLeads();
+  if (!leads.length){ box.innerHTML = '<div class="hint">Finished calls show up here.</div>'; return; }
+  leads.slice(0,100).forEach(l => {
+    const d = document.createElement('div'); d.className = 'lead';
+    d.innerHTML = `<span><b></b><br><span class="hint"></span></span><span><span class="badge"></span></span>`;
+    d.querySelector('b').textContent = (l.direction === 'inbound' ? '📲 ' : '') + (l.name || l.phone || 'Unknown lead');
+    d.querySelector('.hint').textContent = `${l.project ? l.project + ' · ' : ''}${OUTCOMES[l.outcome] || ''} · ${new Date(l.when).toLocaleString()}`;
+    const b = d.querySelector('.badge'); b.classList.add(l.status || ''); b.textContent = l.score ?? '–';
+    d.onclick = () => { if (call.active) return; renderLead(l); $('transcript').innerHTML=''; (l.transcript || []).forEach(t => bubble(t.who==='agent' ? (t.text.startsWith('[IVR]') ? 'agent ivr' : 'agent') : 'user', t.text.replace(/^\[IVR\] /,''))); };
+    box.appendChild(d);
+  });
+}
+$('exportBtn').onclick = () => {
+  const cols = ['when','name','phone','project','direction','language','outcome','status','score', ...RUBRIC.flatMap(r => [r.key, r.key + '_points']), ...LEAD_FIELDS.map(f => f[0]).filter(k => k !== 'name')];
+  const esc = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
+  const row = l => { const c = computeScore(l); const flat = { ...l, score: c.score, status: c.status };
+    c.breakdown.forEach(b => { flat[b.key] = b.level; flat[b.key + '_points'] = b.pts; }); return cols.map(k => esc(flat[k])).join(','); };
+  const csv = [cols.join(','), ...getLeads().map(row)].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type:'text/csv;charset=utf-8' }));
+  a.download = 'call-log.csv'; a.click();
+};
+$('clearBtn').onclick = () => { if (confirm('Delete the saved call log?')){ store.del('lq.leads'); renderLeads(); } };
+renderLeads();
+
+// Open the last-used screen and start the WhatsApp scheduler
+showView(store.get('lq.view') || 'dashboard');
+renderReadiness();
+tickOutbox();
+</script>
+</body>
+</html>
