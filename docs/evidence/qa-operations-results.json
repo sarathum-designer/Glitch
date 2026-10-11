@@ -1,0 +1,13 @@
+{
+  "projectCreation": true,
+  "editableNamePhoneEmail": true,
+  "managerHierarchy": true,
+  "excelImported": 1001,
+  "duplicatesExcluded": 1,
+  "invalidExcluded": 1,
+  "concurrentDialRequests": 2,
+  "providerCalls": 1,
+  "reportExport": true,
+  "restartRecovery": true,
+  "pageErrors": []
+}

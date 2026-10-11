@@ -1,0 +1,12 @@
+{
+  "calendarCapacity": true,
+  "blockedDates": true,
+  "cancellation": true,
+  "modelLoadedParts": 12,
+  "unitColours": true,
+  "manualLocation": true,
+  "liveHeatmap": true,
+  "originPrompt": true,
+  "themes": 2,
+  "pageErrors": []
+}

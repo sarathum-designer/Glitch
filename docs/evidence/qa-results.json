@@ -1,0 +1,11 @@
+{
+  "selfTests": 23,
+  "voiceProfiles": 13,
+  "switching": {
+    "en": "neha",
+    "hi": "ritu",
+    "ms": 19.799999997019768
+  },
+  "restartPersistence": true,
+  "errors": []
+}

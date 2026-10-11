@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testcase name="language changes preserve meaning and avoid switches on negation" time="0.001328" classname="test" file="test\foundation.test.cjs"/>
+	<testcase name="separate Hindi and English voice profiles survive round trip" time="0.000861" classname="test" file="test\foundation.test.cjs"/>
+	<testcase name="SQLite persists encrypted values, handles deletion and rolls back invalid batches" time="0.025193" classname="test" file="test\foundation.test.cjs"/>
+	<testcase name="data batch with 10,000 customer records is recoverable" time="0.024800" classname="test" file="test\foundation.test.cjs"/>
+	<testcase name="webhook validation rejects missing credentials and tampered signatures" time="0.000482" classname="test" file="test\foundation.test.cjs"/>
+	<testcase name="desktop bridge rejects public/private access, serves assets, delivers signed call events" time="0.070965" classname="test" file="test\foundation.test.cjs"/>
+	<testcase name="a slow streamed AI response does not block desktop data requests" time="0.309637" classname="test" file="test\foundation.test.cjs"/>
+	<testcase name="daily project KPIs separate demo, unscored, failed and unanswered calls" time="0.012323" classname="test" file="test\operations.test.cjs"/>
+	<testcase name="daily cap and calling window survive resume; invalid plans rejected" time="0.000398" classname="test" file="test\operations.test.cjs"/>
+	<testcase name="Excel contains clickable project links, all attempts and safe text cells" time="0.013258" classname="test" file="test\operations.test.cjs"/>
+	<testcase name="email retries reuse immutable payload and key; recipients see only assigned projects" time="0.026833" classname="test" file="test\operations.test.cjs"/>
+	<testcase name="10,000 imported leads and attempt rows remain in export" time="0.333857" classname="test" file="test\operations.test.cjs"/>
+	<testcase name="portable project data rejects malformed schedules and external model references" time="0.002225" classname="test" file="test\project.test.cjs"/>
+	<testcase name="calendar limits slots, weekdays and blocked dates without dropping bookings" time="0.003710" classname="test" file="test\project.test.cjs"/>
+	<testcase name="unit links remain unique and map excludes demo and unconfirmed customers" time="0.000255" classname="test" file="test\project.test.cjs"/>
+	<testcase name="model import copies glTF sidecars and blocks traversal" time="0.013376" classname="test" file="test\project.test.cjs"/>
+	<testcase name="geocoding caches only location queries and returns candidate coordinates" time="0.030661" classname="test" file="test\project.test.cjs"/>
+	<!-- tests 17 -->
+	<!-- suites 0 -->
+	<!-- pass 17 -->
+	<!-- fail 0 -->
+	<!-- cancelled 0 -->
+	<!-- skipped 0 -->
+	<!-- todo 0 -->
+	<!-- duration_ms 2429.5997 -->
+</testsuites>
+
