@@ -3,6 +3,10 @@ release/
 resources/cloudflared.exe
 cache/
 vendor-downloads/
+# Third-party libraries restored by download.cjs and download-visual-libs.cjs
+app/vendor/three/
+app/vendor/leaflet/
+app/vendor/xlsx.full.min.js
 qa-*/
 qa-data/
 qa-smoke/
