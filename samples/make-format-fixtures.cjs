@@ -1,0 +1,6 @@
+// Synthetic triangle fixtures for loader tests; no customer assets.
+const fs=require('fs'),path=require('path');const dir=__dirname;
+const buffer=Buffer.alloc(36);[-1,0,0,1,0,0,0,2,0].forEach((n,i)=>buffer.writeFloatLE(n,i*4));
+const data={asset:{version:'2.0',generator:'Glitch test fixture'},scene:0,scenes:[{nodes:[0]}],nodes:[{mesh:0,name:'Test geometry'}],meshes:[{primitives:[{attributes:{POSITION:0}}]}],buffers:[{byteLength:36}],bufferViews:[{buffer:0,byteOffset:0,byteLength:36,target:34962}],accessors:[{bufferView:0,componentType:5126,count:3,type:'VEC3',min:[-1,0,0],max:[1,2,0]}]};
+fs.writeFileSync(path.join(dir,'format-test.bin'),buffer);fs.writeFileSync(path.join(dir,'format-test.gltf'),JSON.stringify({...data,buffers:[{byteLength:36,uri:'format-test.bin'}]},null,2));
+const json=Buffer.from(JSON.stringify(data)),padded=Buffer.alloc(Math.ceil(json.length/4)*4,32);json.copy(padded);const header=Buffer.alloc(12),jh=Buffer.alloc(8),bh=Buffer.alloc(8);header.writeUInt32LE(0x46546c67);header.writeUInt32LE(2,4);header.writeUInt32LE(12+8+padded.length+8+buffer.length,8);jh.writeUInt32LE(padded.length);jh.writeUInt32LE(0x4e4f534a,4);bh.writeUInt32LE(buffer.length);bh.writeUInt32LE(0x004e4942,4);fs.writeFileSync(path.join(dir,'format-test.glb'),Buffer.concat([header,jh,padded,bh,buffer]));
